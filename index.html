@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hard Compare المقارنة الصعبة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marhey:wght@500;600;700&family=Alexandria:wght@400;500;600;700&family=Red+Hat+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg1:#dff1fb; --bg2:#f7fbfe; --card:#ffffff; --ink:#1d2b36; --muted:#667a88; --line:#dbe6ee;
+  --yel:#ffc21a; --yeld:#e0a800; --or:#ff7a1a; --blue:#3a6ea5; --red:#e5484d; --grn:#2fa86a; --wood:#a0693f;
+  --code:#1d2b36; --code2:#26394a;
+  --mono:'Red Hat Mono',monospace; --disp:'Marhey','Alexandria',sans-serif;
+  --s:min(1vh,.56vw); --s:min(1dvh,.56vw);
+  --gap:calc(var(--s)*1.8); --r:calc(var(--s)*1.6);
+  --shadow:0 calc(var(--s)*.8) calc(var(--s)*2.4) rgba(29,43,54,.10);
+  --hazard:repeating-linear-gradient(-45deg,var(--yel) 0 12px,var(--ink) 12px 24px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Alexandria',sans-serif;color:var(--ink);overflow:hidden;font-size:calc(var(--s)*2.1);background:linear-gradient(180deg,var(--bg1),var(--bg2) 70%)}
+button{font:inherit;color:inherit}
+.ltr{direction:ltr;unicode-bidi:isolate;font-family:var(--mono)}
+.app{height:100vh;height:100dvh;display:grid;grid-template-rows:auto 1fr auto}
+
+.top{display:flex;align-items:center;justify-content:space-between;gap:calc(var(--s)*2);padding:calc(var(--s)*1) calc(var(--s)*3);background:var(--ink);color:#fff;position:relative;z-index:5}
+.top::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:6px;background:var(--hazard)}
+.brand{display:flex;align-items:center;gap:calc(var(--s)*1.4)}
+.logo{width:calc(var(--s)*5.6);height:calc(var(--s)*5.6);border-radius:calc(var(--s)*1.2);background:var(--yel);display:grid;place-items:center;flex:none}
+.logo svg{width:66%;height:66%}
+.brand b{display:block;font-family:var(--disp);font-weight:700;font-size:calc(var(--s)*2.6);line-height:1.4}
+.brand b .en{font-family:var(--mono);font-weight:700;font-size:.82em;color:var(--yel);margin-inline-end:8px}
+.brand span{font-size:calc(var(--s)*1.6);opacity:.7;font-family:var(--mono)}
+.stepper{display:flex;gap:calc(var(--s)*.4);background:rgba(255,255,255,.07);border-radius:calc(var(--s)*1.2);padding:calc(var(--s)*.5)}
+.step-btn{display:flex;align-items:center;gap:calc(var(--s)*.7);border:0;background:transparent;border-radius:calc(var(--s)*.9);padding:calc(var(--s)*.4) calc(var(--s)*1.4) calc(var(--s)*.4) calc(var(--s)*.5);cursor:pointer;font-weight:600;font-size:calc(var(--s)*1.85);color:rgba(255,255,255,.7);transition:.25s}
+.step-btn i{font-style:normal;width:calc(var(--s)*3.2);height:calc(var(--s)*3.2);border-radius:calc(var(--s)*.7);display:grid;place-items:center;border:2px solid rgba(255,255,255,.4);font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*1.7)}
+.step-btn.done i{background:var(--grn);border-color:var(--grn)}
+.step-btn.active{background:var(--yel);color:var(--ink)}
+.step-btn.active i{background:var(--ink);border-color:var(--ink);color:var(--yel)}
+@media(max-width:1100px){.step-btn span{display:none}.step-btn{padding:calc(var(--s)*.4)}}
+
+.stage{position:relative;overflow:hidden;overflow:clip}
+.screen{position:absolute;inset:0;padding:calc(var(--s)*2.4) calc(var(--s)*3.5) calc(var(--s)*2);overflow:auto;display:flex;flex-direction:column;gap:var(--gap);opacity:0;visibility:hidden;transform:translateY(14px);transition:opacity .5s cubic-bezier(.22,1,.36,1),transform .5s cubic-bezier(.22,1,.36,1),visibility .5s}
+.screen.active{opacity:1;visibility:visible;transform:none}
+.screen>*{width:100%}
+.screen-head{display:flex;align-items:center;justify-content:space-between;gap:calc(var(--s)*1.6);flex-wrap:wrap;flex:none}
+.screen-head>div:first-child{display:flex;align-items:center;gap:calc(var(--s)*1.6)}
+.kicker{font-family:var(--disp);font-weight:700;font-size:calc(var(--s)*1.8);color:var(--ink);padding:calc(var(--s)*.2) calc(var(--s)*1.6);background:var(--yel);border:2px solid var(--ink);border-radius:calc(var(--s)*.6);white-space:nowrap;transform:rotate(-3deg);box-shadow:3px 3px 0 var(--ink)}
+.screen-head h2{font-family:var(--disp);font-weight:700;font-size:calc(var(--s)*3.3);line-height:1.5}
+.screen-head h2 .hl{color:var(--or)}
+.screen-head p{color:var(--muted);font-size:calc(var(--s)*2.1);font-weight:500}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--gap);flex:1;min-height:0}
+.split>*{min-height:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:calc(var(--s)*2);box-shadow:var(--shadow);position:relative}
+.card.tape{padding-top:calc(var(--s)*2.6)}
+.card.tape::before{content:"";position:absolute;left:0;right:0;top:0;height:calc(var(--s)*.9);background:var(--hazard);border-radius:var(--r) var(--r) 0 0;opacity:.9}
+.label{font-size:calc(var(--s)*1.8);font-weight:600;color:var(--muted);margin-bottom:calc(var(--s)*.7);display:block}
+
+.btn{font-weight:700;font-size:calc(var(--s)*2.05);border:2px solid var(--ink);border-radius:calc(var(--s)*1);padding:calc(var(--s)*.8) calc(var(--s)*2.4);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:calc(var(--s)*.9);white-space:nowrap;background:#fff;box-shadow:3px 3px 0 var(--ink);transition:transform .18s cubic-bezier(.22,1,.36,1),box-shadow .18s,background .2s,opacity .2s}
+.btn svg{width:calc(var(--s)*2.4);height:calc(var(--s)*2.4);flex:none}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn.yel{background:var(--yel)}
+.btn.grn{background:var(--grn);color:#fff}
+.btn.icon{padding-inline:calc(var(--s)*1.2)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:3px 3px 0 var(--ink)}
+.btn.pulse{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{outline:0 solid rgba(255,194,26,.7)}50%{outline:8px solid rgba(255,194,26,0)}}
+.chips{display:flex;gap:calc(var(--s)*.8);flex-wrap:wrap}
+.chip{font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*1.9);padding:calc(var(--s)*.3) calc(var(--s)*1.3);border-radius:calc(var(--s)*.6);border:1.5px solid var(--line);background:#fff;cursor:pointer;direction:ltr;transition:.2s}
+.chip:hover{border-color:var(--ink)}
+.chip.active{border:2px solid var(--ink);background:var(--yel)}
+.controls{display:flex;gap:calc(var(--s)*1);flex-wrap:wrap;align-items:center}
+.sndbtn.off .w{display:none}.sndbtn .x{display:none}.sndbtn.off .x{display:inline}
+
+.dock{display:flex;align-items:center;gap:calc(var(--s)*1.6);background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:calc(var(--s)*.8) calc(var(--s)*1.6);flex:none;flex-wrap:wrap;box-shadow:var(--shadow)}
+.dock .txt{flex:1;min-width:200px;font-weight:500;font-size:calc(var(--s)*2.2);line-height:1.6}
+.dock .txt b{color:var(--or)}
+.av{width:calc(var(--s)*6.2);height:calc(var(--s)*6.2);border-radius:calc(var(--s)*1.4);background:#fff3cf;overflow:hidden;flex:none;border:2px solid var(--ink)}
+.av svg{width:100%;height:100%;display:block}
+
+/* beaver */
+.bvr{flex:1 1 0;min-height:0;width:100%;--happy:0;--oops:0;filter:drop-shadow(0 14px 14px rgba(29,43,54,.2))}
+.bvr.happy{--happy:1}.bvr.oops{--oops:1}
+.bvr .bodyg{transform-box:view-box;transform-origin:120px 270px;animation:idle 3.2s ease-in-out infinite}
+@keyframes idle{0%,100%{transform:scale(1,1)}50%{transform:scale(1.012,.988)}}
+.bvr.work .bodyg{animation:work .32s ease-in-out infinite alternate}
+@keyframes work{from{transform:translateY(0) rotate(-1.5deg)}to{transform:translateY(-6px) rotate(1.5deg)}}
+.bvr .tail{transform-box:view-box;transform-origin:90px 228px;animation:tail 2.6s ease-in-out infinite}
+@keyframes tail{0%,100%{transform:rotate(0)}50%{transform:rotate(-7deg)}}
+.bvr .blink{transform-box:fill-box;transform-origin:center;animation:blink 4s infinite}
+@keyframes blink{0%,93%,100%{transform:scaleY(1)}95.5%{transform:scaleY(.1)}}
+
+/* ===== towers svg ===== */
+.towers{width:100%;height:100%;display:block}
+.towers text{font-family:'Red Hat Mono',monospace;font-weight:700;text-anchor:middle;dominant-baseline:central}
+.towers .gnd{fill:#c9b28f}
+.towers .gline{stroke:var(--ink);stroke-width:3}
+.towers .blk{stroke:rgba(29,43,54,.55);stroke-width:1.5}
+.towers .blk.a{fill:var(--blue)} .towers .blk.b{fill:var(--or)}
+.towers .blkt{fill:#fff;font-size:13px}
+.towers .base{fill:var(--ink)}
+.towers .val{fill:var(--muted);font-weight:500}
+.towers .hlab{fill:var(--ink)}
+.towers .cmpl{stroke:var(--red);stroke-width:3;stroke-dasharray:9 7}
+.towers .win{fill:none;stroke:var(--yel);stroke-width:6}
+.towers .empty{fill:none;stroke:#b7c6d1;stroke-width:2;stroke-dasharray:6 6}
+.towers .crane{stroke:var(--yeld);stroke-width:4;fill:none}
+
+/* ===== 1. game ===== */
+.story{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,.72fr) minmax(0,1.28fr);gap:var(--gap)}
+.story>*{min-height:0}
+.hero{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0}
+.bubble{background:#fff;border:2px solid var(--ink);border-radius:calc(var(--s)*1.6);padding:calc(var(--s)*1.2) calc(var(--s)*2.6);font-weight:600;font-size:calc(var(--s)*2.3);line-height:1.65;max-width:calc(var(--s)*56);text-align:center;position:relative;margin-bottom:calc(var(--s)*2.4);flex:none;box-shadow:4px 4px 0 var(--ink)}
+.bubble::after{content:"";position:absolute;bottom:calc(var(--s)*-1.25);left:50%;width:calc(var(--s)*2.2);height:calc(var(--s)*2.2);background:#fff;border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);transform:translateX(-50%) rotate(45deg)}
+.bubble b{color:var(--or)}
+.bubble.pop{animation:bpop .45s cubic-bezier(.22,1,.36,1)}
+@keyframes bpop{0%{transform:scale(.92)}60%{transform:scale(1.04)}100%{transform:scale(1)}}
+.site{display:flex;flex-direction:column;gap:calc(var(--s)*1.2)}
+.site-top{display:flex;align-items:center;justify-content:space-between;gap:calc(var(--s)*1.2)}
+.site-title{font-family:var(--disp);font-weight:700;font-size:calc(var(--s)*2.4)}
+.dots{display:flex;gap:7px;direction:ltr}
+.dots i{width:calc(var(--s)*2.2);height:calc(var(--s)*2.2);border-radius:4px;border:2px solid var(--line);transition:.3s}
+.dots i.cur{border-color:var(--ink);background:var(--yel)}
+.dots i.ok{background:var(--grn);border-color:var(--grn)}
+.dots i.no{background:var(--red);border-color:var(--red)}
+.score{font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*2.4);color:var(--grn)}
+.vs{display:flex;align-items:center;justify-content:center;gap:calc(var(--s)*3);direction:ltr;font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*4.4)}
+.vs .a{color:var(--blue)} .vs .b{color:var(--or)}
+.vs sup{font-size:.55em}
+.vs .q{font-family:var(--disp);color:var(--muted);font-size:.7em}
+.towerbox{flex:1;min-height:0}
+.judge{display:flex;align-items:center;justify-content:center;gap:calc(var(--s)*2);min-height:calc(var(--s)*6.4)}
+.jbtn{display:flex;align-items:center;gap:calc(var(--s)*1);border:2.5px solid var(--ink);background:#fff;cursor:pointer;border-radius:calc(var(--s)*1);padding:calc(var(--s)*.8) calc(var(--s)*2.6);font-weight:700;font-size:calc(var(--s)*2.2);box-shadow:3px 3px 0 var(--ink);transition:transform .2s cubic-bezier(.3,1.5,.5,1),background .2s,opacity .2s}
+.jbtn b{font-family:var(--mono);direction:ltr;unicode-bidi:isolate}
+.jbtn:hover:not(:disabled){transform:translate(-2px,-2px)}
+.jbtn.chosen{background:var(--yel)}
+.jbtn:disabled{cursor:default;opacity:.35}
+.jbtn.chosen:disabled{opacity:1}
+.stamp{font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*4);padding:0 calc(var(--s)*2.4);border:4px solid;border-radius:calc(var(--s)*1);transform:rotate(-6deg);opacity:0;direction:ltr}
+.stamp.y{color:var(--grn);border-color:var(--grn)} .stamp.n{color:var(--red);border-color:var(--red)}
+
+/* ===== 2. analysis ===== */
+.an-grid{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:calc(var(--gap)*1.2) var(--gap)}
+.an{display:flex;flex-direction:column;gap:calc(var(--s)*.8);overflow:hidden;padding:calc(var(--s)*2.2) calc(var(--s)*2.2) calc(var(--s)*1.4);transition:box-shadow .4s}
+.an-top{display:flex;align-items:center;gap:calc(var(--s)*1.3);flex:none}
+.an-ic{width:calc(var(--s)*5);height:calc(var(--s)*5);border-radius:calc(var(--s)*1);display:grid;place-items:center;flex:none;color:#fff;border:2px solid var(--ink)}
+.an-ic svg{width:55%;height:55%}
+.an-top h3{font-family:var(--disp);font-weight:700;font-size:calc(var(--s)*2.6)}
+.an-top .num{margin-inline-start:auto;font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*2);color:#c4d2dc}
+.an-body{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--s)*1.1);text-align:center;transition:opacity .45s,transform .45s cubic-bezier(.22,1,.36,1)}
+.an.locked .an-body{opacity:0;transform:translateY(14px);pointer-events:none}
+.an .q{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*13);color:rgba(29,43,54,.05);transition:opacity .4s;pointer-events:none}
+.an:not(.locked) .q{opacity:0}
+.an.locked .an-top{opacity:.5}
+.an.fresh{box-shadow:0 0 0 3px var(--yel),var(--shadow)}
+.an small{color:var(--muted);font-weight:500;font-size:calc(var(--s)*1.95)}
+.parts{display:flex;gap:calc(var(--s)*1);direction:ltr;align-items:flex-end}
+.part{display:flex;flex-direction:column;align-items:center;gap:calc(var(--s)*.3)}
+.part b{font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*3.4);border-radius:calc(var(--s)*.7);min-width:calc(var(--s)*6.4);padding:0 calc(var(--s)*.8);line-height:1.4;color:#fff;border:2px solid var(--ink)}
+.part.a b{background:var(--blue)} .part.b b{background:var(--or)}
+.part small{font-family:var(--mono);font-size:calc(var(--s)*1.55)}
+.ex{display:flex;flex-direction:column;gap:calc(var(--s)*.8);width:100%;max-width:calc(var(--s)*56)}
+.ex div{display:flex;align-items:center;justify-content:space-between;gap:calc(var(--s)*1.2);direction:ltr;font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*2.4);background:var(--code);color:#eef4f8;border-radius:calc(var(--s)*.8);padding:calc(var(--s)*.4) calc(var(--s)*1.6)}
+.ex i{font-style:normal;color:#8aa0b0}
+.ex .y{color:#7be0a5} .ex .n{color:#ff8e8e}
+.mega{font-family:var(--mono);font-weight:700;direction:ltr;font-size:calc(var(--s)*2.4);line-height:1.3;background:var(--code);color:#ffd27a;border-radius:calc(var(--s)*.8);padding:calc(var(--s)*.6) calc(var(--s)*1.4);max-width:100%;overflow:hidden;white-space:nowrap;-webkit-mask:linear-gradient(90deg,#000 70%,transparent);mask:linear-gradient(90deg,#000 70%,transparent)}
+.rule{display:flex;flex-direction:column;gap:calc(var(--s)*.8);width:100%;max-width:calc(var(--s)*64)}
+.rule div{display:flex;align-items:center;justify-content:center;gap:calc(var(--s)*1.1);font-size:calc(var(--s)*2);font-weight:600;flex-wrap:wrap}
+.rule code{font-family:var(--mono);font-weight:700;direction:ltr;unicode-bidi:isolate;border-radius:6px;padding:0 8px;white-space:nowrap;background:#fff3cf;border:1px solid #f0d58a}
+.rule code .a{color:var(--blue)} .rule code .b{color:var(--or)}
+
+/* memory */
+.mrow{display:flex;gap:calc(var(--s)*1);direction:ltr;justify-content:center;flex-wrap:wrap}
+.mbox{display:flex;flex-direction:column;align-items:center;gap:calc(var(--s)*.3)}
+.mbox .nm{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-weight:700;color:var(--muted);font-size:calc(var(--s)*1.7)}
+.tag{font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*1.4);padding:0 calc(var(--s)*.6);border-radius:4px;line-height:1.5;color:#fff;background:var(--blue)}
+.tag.flt{background:var(--grn)}
+.mbox b{min-width:calc(var(--s)*9);height:calc(var(--s)*6.4);display:grid;place-items:center;border-radius:calc(var(--s)*.8);background:#fff;border:2px solid var(--ink);font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*2.9);padding:0 calc(var(--s)*.9);transition:background .3s;white-space:nowrap}
+.mbox.a b{color:var(--blue)} .mbox.b b{color:var(--or)}
+.mbox.h b{min-width:calc(var(--s)*13);border-width:3px}
+.mbox.h.a b{border-color:var(--blue)} .mbox.h.b b{border-color:var(--or)}
+.mbox.empty b{color:#c4d2dc;border-style:dashed}
+.mbox.cur b{background:#fff3cf}
+
+/* ===== 3. design ===== */
+.design{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:var(--gap)}
+.design>*{min-height:0}
+.pseudo-card{display:flex;flex-direction:column}
+.pseudo{list-style:none;display:flex;flex-direction:column;gap:calc(var(--s)*.6);flex:1;min-height:0}
+.pseudo li{flex:1;min-height:0;max-height:calc(var(--s)*8);display:flex;gap:calc(var(--s)*1);align-items:center;flex-wrap:wrap;padding:0 calc(var(--s)*1.3);border-radius:calc(var(--s)*.8);background:#fff;border:1.5px solid var(--line);font-weight:600;font-size:calc(var(--s)*2);transition:background .35s,border-color .35s,opacity .45s,transform .45s cubic-bezier(.22,1,.36,1);opacity:0;transform:translateX(-18px)}
+.pseudo li.show{opacity:1;transform:none}
+.pseudo li .n{font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*2);color:#c4d2dc;flex:none;width:1.2em}
+.pseudo li.ind{margin-inline-start:calc(var(--s)*3)}
+.pseudo li.fresh{background:#e3f4ea;border-color:var(--grn)}
+.pseudo li.cur{background:#fff3cf;border-color:var(--yeld)}
+.pseudo li.cur .n{color:var(--or)}
+.pseudo code{font-family:var(--mono);font-weight:700;direction:ltr;unicode-bidi:isolate;font-size:1em;color:var(--blue)}
+.progress{height:calc(var(--s)*1.1);border-radius:3px;background:var(--line);overflow:hidden;margin-top:calc(var(--s)*1);flex:none}
+.progress i{display:block;height:100%;width:0;background:var(--hazard);transition:width .45s cubic-bezier(.22,1,.36,1)}
+.flow-card{display:flex;align-items:center;justify-content:center;padding:calc(var(--s)*.6)}
+#flow{width:100%;height:100%}
+#flow .node{opacity:0;transform:scale(.55);transform-box:fill-box;transform-origin:center;transition:opacity .35s,transform .55s cubic-bezier(.3,1.5,.5,1)}
+#flow .node.show{opacity:1;transform:none}
+#flow .sh{fill:#fff;stroke:#1d2b36;stroke-width:2.2;stroke-linejoin:round;transition:fill .3s,stroke .3s}
+#flow .node.dec .sh{fill:#fff3cf;stroke:#e0a800}
+#flow .node.pr .sh{stroke:#3a6ea5}
+#flow .node.okn .sh{stroke:#2fa86a;stroke-width:3}
+#flow .node.bad .sh{stroke:#e5484d;stroke-width:3}
+#flow text{fill:#1d2b36;font-size:15px;font-weight:600;text-anchor:middle;dominant-baseline:central;font-family:'Alexandria'}
+#flow text.mono{font-family:'Red Hat Mono';font-weight:700;font-size:13.5px}
+#flow text.cap{font-size:11px;fill:#667a88}
+#flow .node.fresh .sh{fill:#e3f4ea}
+#flow .node.visited .sh{fill:#fff3cf}
+#flow .node.on .sh{fill:#1d2b36;stroke:#1d2b36}
+#flow .node.on text{fill:#ffc21a}
+#flow .edge{opacity:0}
+#flow .edge.show{opacity:1}
+#flow .edge path{stroke:#667a88;stroke-width:2.2;fill:none;marker-end:url(#arG);stroke-dasharray:100;stroke-dashoffset:0;stroke-linejoin:round;transition:stroke .3s,stroke-width .3s}
+#flow .edge.show path{animation:draw .6s ease both}
+@keyframes draw{from{stroke-dashoffset:100}to{stroke-dashoffset:0}}
+#flow .edge text{font-size:12px;fill:#667a88;font-weight:700}
+#flow .edge.on path{stroke:#ff7a1a;stroke-width:4;marker-end:url(#arO)}
+.trace{display:flex;flex-direction:column;justify-content:space-between;gap:calc(var(--s)*1);transition:opacity .4s}
+.trace .btn{width:100%}
+.trace.locked{opacity:.35;pointer-events:none}
+.minibox{background:#f2f8fc;border:1.5px solid var(--line);border-radius:calc(var(--s)*1);height:calc(var(--s)*17);overflow:hidden}
+.cmpbox{background:#fff;border:1.5px dashed #b7c6d1;border-radius:calc(var(--s)*.8);padding:calc(var(--s)*.6);min-height:calc(var(--s)*6);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*2.2);direction:ltr;gap:10px;flex-wrap:wrap}
+.cmpbox .t{color:var(--grn)} .cmpbox .f{color:var(--red)} .cmpbox .a{color:var(--blue)} .cmpbox .b{color:var(--or)}
+.outbig{font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*4);min-height:calc(var(--s)*7);display:grid;place-items:center;background:var(--code);color:#eef4f8;border-radius:calc(var(--s)*1);direction:ltr}
+.outbig.y{color:#7be0a5} .outbig.n{color:#ff8e8e}
+
+/* ===== 4. ide ===== */
+.ide{background:var(--code);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow);border:2px solid var(--ink)}
+.ide-bar{display:flex;align-items:center;gap:calc(var(--s)*1);padding:calc(var(--s)*.9) calc(var(--s)*2);background:var(--code2);direction:ltr;flex:none}
+.ide-bar .d{width:calc(var(--s)*1.5);height:calc(var(--s)*1.5);border-radius:50%}
+.ide-bar .tab{margin-left:calc(var(--s)*1.4);font-family:var(--mono);font-size:calc(var(--s)*1.9);color:#8aa0b0}
+.code{direction:ltr;text-align:left;font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*2.25);line-height:1.45;padding:calc(var(--s)*.8) 0;flex:1;overflow:auto;display:flex;flex-direction:column;justify-content:center}
+.ln{display:flex;padding:calc(var(--s)*.35) calc(var(--s)*2) calc(var(--s)*.35) calc(var(--s)*1.4);border-left:4px solid transparent;white-space:pre;color:#eef4f8;transition:background .25s,opacity .3s}
+.ln .no{width:calc(var(--s)*4);color:#4d6577;flex:none;user-select:none}
+.ln.ran .no{color:#7be0a5}
+.ln.cur{background:rgba(255,194,26,.16);border-left-color:var(--yel)}
+.ln.skip{opacity:.3}
+.sk{color:#ff8eb4}.sf{color:#7cc7ff}.ss{color:#ffd27a}.sm{color:#c9b6ff}
+.va{color:#9cc3ff}.vb{color:#ffb27a}.vh{color:#7be0a5}
+.mem{display:flex;flex-direction:column;justify-content:space-between;gap:calc(var(--s)*1)}
+.mem .minibox{height:calc(var(--s)*15)}
+.calcl{display:flex;align-items:center;justify-content:center;gap:12px;direction:ltr;flex-wrap:wrap;background:#fff;border:1.5px dashed #b7c6d1;border-radius:calc(var(--s)*.8);min-height:calc(var(--s)*6);font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*2.3);padding:calc(var(--s)*.4) calc(var(--s)*1.2)}
+.calcl .ph2{font-family:'Alexandria';font-weight:500;color:var(--muted);font-size:.8em;direction:rtl}
+.calcl .t{color:var(--grn)} .calcl .f{color:var(--red)} .calcl .a{color:var(--blue)} .calcl .b{color:var(--or)}
+.console{background:var(--code);border-radius:calc(var(--s)*.8);padding:calc(var(--s)*.8) calc(var(--s)*2);font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*3.4);min-height:calc(var(--s)*6.6);direction:ltr;display:flex;align-items:center;gap:calc(var(--s)*1.4);color:#eef4f8}
+.console .pr{color:#4d6577}
+.console .y{color:#7be0a5} .console .n{color:#ff8e8e}
+.token{position:fixed;left:0;top:0;z-index:40;pointer-events:none;font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*2.8);background:var(--yel);color:var(--ink);border:2px solid var(--ink);border-radius:calc(var(--s)*.6);padding:0 calc(var(--s)*1);box-shadow:3px 3px 0 var(--ink);white-space:nowrap;will-change:transform}
+.token.a{background:#d6e6f7} .token.b{background:#ffe1c9} .token.g{background:#c9f0d8} .token.r{background:#ffd1d1}
+.spark{position:fixed;left:0;top:0;pointer-events:none;z-index:70;will-change:transform}
+.ring{position:fixed;left:0;top:0;pointer-events:none;z-index:69;border:3px solid var(--yel);border-radius:50%}
+.shake{animation:shake .45s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+
+/* ===== 5. test ===== */
+.tside{display:flex;flex-direction:column;gap:calc(var(--s)*1.4);justify-content:space-evenly}
+.test-in{display:flex;gap:calc(var(--s)*1);flex-wrap:wrap}
+.field{flex:1;min-width:200px;direction:ltr;font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*3.4);padding:calc(var(--s)*.6) calc(var(--s)*2);border-radius:calc(var(--s)*1);border:2px solid var(--ink);background:#fff;color:var(--ink);outline:none;transition:box-shadow .2s}
+.field:focus{box-shadow:0 0 0 4px rgba(255,194,26,.45)}
+.err{color:var(--red);font-weight:600;font-size:calc(var(--s)*1.9);min-height:calc(var(--s)*3)}
+.tvis{display:flex;flex-direction:column;gap:calc(var(--s)*1.1)}
+.tvis .vs{font-size:calc(var(--s)*3.4)}
+.tsteps{display:flex;flex-direction:column;gap:calc(var(--s)*.6);flex:none}
+.tstep{display:flex;align-items:center;gap:calc(var(--s)*1.1);padding:calc(var(--s)*.5) calc(var(--s)*1.4);background:#fff;border:1.5px solid var(--line);border-radius:calc(var(--s)*.8);font-weight:600;font-size:calc(var(--s)*1.95);opacity:.45;transition:opacity .3s,border-color .3s,background .3s}
+.tstep .n{font-family:var(--mono);font-weight:700;color:#c4d2dc}
+.tstep .r{margin-inline-start:auto;font-family:var(--mono);font-weight:700;direction:ltr;unicode-bidi:isolate;font-size:1.1em}
+.tstep .r.a{color:var(--blue)} .tstep .r.b{color:var(--or)} .tstep .r.t{color:var(--grn)} .tstep .r.f{color:var(--red)}
+.tstep.on{opacity:1;border-color:var(--yeld);background:#fff3cf}
+.tstep.done{opacity:1}
+
+/* ===== 6. improve ===== */
+.seg{display:inline-flex;background:#fff;border:2px solid var(--ink);border-radius:calc(var(--s)*1);padding:3px;gap:3px;box-shadow:3px 3px 0 var(--ink)}
+.seg button{border:0;background:transparent;font-weight:700;font-size:calc(var(--s)*1.95);padding:calc(var(--s)*.4) calc(var(--s)*1.6);border-radius:calc(var(--s)*.7);cursor:pointer;display:flex;align-items:center;gap:calc(var(--s)*.8);transition:.25s}
+.seg button b{font-family:var(--mono);font-size:calc(var(--s)*2)}
+.seg button.on{background:var(--ink);color:var(--yel)}
+.imp-card{display:flex;flex-direction:column;gap:calc(var(--s)*1.3);justify-content:space-evenly}
+.imp-card h3{font-family:var(--disp);font-weight:700;font-size:calc(var(--s)*2.6);display:flex;align-items:center;gap:calc(var(--s)*1.3)}
+.imp-card p{color:var(--muted);font-weight:500;font-size:calc(var(--s)*2.1);line-height:1.65}
+.fl{direction:ltr;font-family:var(--mono);font-weight:700;font-size:calc(var(--s)*2.3);background:var(--code);color:#eef4f8;border-radius:calc(var(--s)*1);padding:calc(var(--s)*1.1) calc(var(--s)*1.8);display:flex;flex-direction:column;gap:calc(var(--s)*.5)}
+.fl .c{color:#8aa0b0} .fl .y{color:#7be0a5} .fl .r{color:#ff8e8e}
+.nextrow{display:flex;align-items:center;justify-content:space-between;gap:calc(var(--s)*1.4);flex-wrap:wrap;border-top:2px dashed var(--line);padding-top:calc(var(--s)*1.4)}
+.nextrow b{font-family:var(--disp);font-size:calc(var(--s)*2.3)}
+
+.bottom{display:flex;align-items:center;justify-content:space-between;gap:calc(var(--s)*1.6);padding:calc(var(--s)*.9) calc(var(--s)*3);background:#fff;border-top:2px solid var(--ink)}
+.hints{display:flex;gap:calc(var(--s)*.8);flex-wrap:wrap;justify-content:center}
+.hint-btn{display:flex;align-items:center;gap:calc(var(--s)*.7);padding:calc(var(--s)*.45) calc(var(--s)*1.5);border-radius:calc(var(--s)*.7);background:#fff3cf;border:1.5px solid var(--ink);color:var(--ink);font-size:calc(var(--s)*1.85);font-weight:600;cursor:pointer;transition:transform .2s cubic-bezier(.22,1,.36,1),background .2s}
+.hint-btn:hover{transform:translateY(-2px);background:var(--yel)}
+.hint-btn svg{width:calc(var(--s)*2.3);height:calc(var(--s)*2.3);flex:none}
+.sheet-wrap{position:fixed;inset:0;background:rgba(29,43,54,.4);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;z-index:50}
+.sheet-wrap.open{opacity:1;pointer-events:auto}
+.sheet{width:min(680px,100%);max-height:86vh;overflow:auto;background:#fff;border:2px solid var(--ink);border-bottom:0;border-radius:18px 18px 0 0;padding:14px 24px 26px;transform:translateY(100%);transition:transform .45s cubic-bezier(.22,1,.36,1)}
+.sheet-wrap.open .sheet{transform:none}
+.grab{width:60px;height:8px;border-radius:3px;background:var(--hazard);margin:0 auto 14px}
+.sheet-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.sheet-head .av{width:52px;height:52px}
+.sheet-head h3{font-family:var(--disp);font-weight:700;font-size:21px;flex:1}
+.x{width:40px;height:40px;border-radius:8px;border:2px solid var(--ink);background:#fff;cursor:pointer;display:grid;place-items:center}
+.x svg{width:18px;height:18px}
+.sheet-body p{line-height:1.85;font-weight:500;font-size:16.5px}
+.sheet-body p+p{margin-top:4px}
+pre.snip{direction:ltr;text-align:left;background:var(--code);color:#eef4f8;border-radius:8px;padding:12px 16px;font-family:var(--mono);font-weight:700;font-size:15px;line-height:1.6;overflow:auto;margin-top:10px}
+.sheet.big{width:min(1100px,96vw);height:min(90vh,calc(var(--s)*82));display:flex;flex-direction:column;padding:calc(var(--s)*1.6) calc(var(--s)*4) calc(var(--s)*3)}
+.sheet.big .sheet-head h3{font-size:calc(var(--s)*3.6)}
+.sheet.big .sheet-head .av{width:calc(var(--s)*7.5);height:calc(var(--s)*7.5)}
+.sheet.big .sheet-body{flex:1;min-height:0;display:flex;flex-direction:column}
+.nx{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:calc(var(--s)*1.6);text-align:center}
+.nx .g{font-family:var(--disp);font-weight:700;font-size:calc(var(--s)*3.2)}
+.nx .g b{color:var(--or)}
+.nx svg.art{flex:1 1 0;min-height:calc(var(--s)*14);width:100%}
+.nx .tip{display:flex;align-items:center;gap:calc(var(--s)*1.4);background:#fff3cf;border:2px solid var(--ink);border-radius:calc(var(--s)*1.2);padding:calc(var(--s)*1.2) calc(var(--s)*2.6);font-size:calc(var(--s)*2.5);font-weight:600;box-shadow:4px 4px 0 var(--ink)}
+.nx .tip svg{flex:none;width:calc(var(--s)*4);height:calc(var(--s)*4);color:var(--or)}
+.nx .try{color:var(--muted);font-weight:500;font-size:calc(var(--s)*2.2)}
+
+@media(max-width:1000px) and (min-width:821px){.design{grid-template-columns:1fr 1fr}.trace{grid-column:1 / -1}}
+@media(max-width:820px),(max-height:480px){
+  :root{--s:6.4px}
+  .story,.split,.an-grid,.design{grid-template-columns:1fr;grid-template-rows:none;flex:none}
+  .bvr{flex:none;height:270px}
+  .towerbox{flex:none;height:260px}
+  .an{min-height:220px}
+  .pseudo li{flex:none;min-height:44px}
+  .flow-card{height:560px}
+  .code{font-size:12px}
+  .screen{padding:14px 14px 20px}
+  .hint-btn span,.nav-txt,.brand span{display:none}
+  .hint-btn{padding:8px}
+  .top,.bottom{padding:8px 12px}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="bvHead">
+      <circle cx="84" cy="64" r="11" fill="#8a5733"/><circle cx="84" cy="64" r="5" fill="#e2b98a"/>
+      <circle cx="156" cy="64" r="11" fill="#8a5733"/><circle cx="156" cy="64" r="5" fill="#e2b98a"/>
+      <path d="M78 94 C76 50 164 50 162 94 C162 128 142 142 120 142 C98 142 78 128 78 94Z" fill="#a0693f"/>
+      <ellipse cx="120" cy="114" rx="27" ry="19" fill="#e2b98a"/>
+      <g style="opacity:calc(1 - var(--happy,0))"><ellipse class="blink" cx="102" cy="90" rx="5.5" ry="7" fill="#1d1410"/><ellipse class="blink" cx="138" cy="90" rx="5.5" ry="7" fill="#1d1410"/><circle cx="104" cy="87" r="1.8" fill="#fff"/><circle cx="140" cy="87" r="1.8" fill="#fff"/></g>
+      <g style="opacity:var(--happy,0)" stroke="#1d1410" stroke-width="4" fill="none" stroke-linecap="round"><path d="M95 93 Q102 83 109 93"/><path d="M131 93 Q138 83 145 93"/></g>
+      <ellipse cx="120" cy="103" rx="9" ry="6" fill="#2b1a12"/>
+      <path d="M108 112 Q120 118 132 112" stroke="#2b1a12" stroke-width="2.5" fill="none" stroke-linecap="round" style="opacity:calc(1 - var(--oops,0))"/>
+      <path d="M108 116 Q120 109 132 116" stroke="#2b1a12" stroke-width="2.5" fill="none" stroke-linecap="round" style="opacity:var(--oops,0)"/>
+      <rect x="112" y="114" width="16" height="13" rx="2" fill="#fff" stroke="#2b1a12" stroke-width="1.5"/><path d="M120 114 V127" stroke="#2b1a12" stroke-width="1.5"/>
+      <circle cx="92" cy="108" r="5" fill="#ff9e8a" opacity=".45"/><circle cx="148" cy="108" r="5" fill="#ff9e8a" opacity=".45"/>
+      <path d="M78 70 C80 30 160 30 162 70Z" fill="#ffc21a"/>
+      <rect x="115" y="33" width="10" height="36" rx="3" fill="#e0a800"/>
+      <path d="M68 70 H172 Q174 77 167 79 H73 Q66 77 68 70Z" fill="#e0a800"/>
+    </g>
+  </defs>
+</svg>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#1d2b36" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="12" width="7" height="9" fill="#3a6ea5"/><rect x="3" y="6" width="7" height="6" fill="#3a6ea5"/><rect x="14" y="9" width="7" height="12" fill="#ff7a1a"/></svg></div>
+      <div><b><span class="en">Hard Compare</span>المقارنة الصعبة</b><span>Sheet #1 · Problem Z</span></div>
+    </div>
+    <nav class="stepper" id="stepper"></nav>
+  </header>
+
+  <main class="stage">
+
+    <!-- ===== 1 ===== -->
+    <section class="screen active" data-title="الفكرة">
+      <div class="screen-head">
+        <div><span class="kicker">موقع 1</span><h2>الفكرة: مين <span class="hl">البرج</span> الأعلى؟</h2></div>
+        <p>كل مرة بنضرب في الرقم = دور جديد في البرج</p>
+      </div>
+      <div class="story">
+        <div class="hero">
+          <div class="bubble" id="bvSay">كل برج بيتبني من <b>أدوار</b> متشابهة.<br>توقّع: الأزرق أعلى من البرتقاني؟</div>
+          <svg class="bvr" id="bvr" viewBox="8 26 226 256" aria-label="القندس البنّاء">
+            <ellipse cx="120" cy="274" rx="70" ry="7" fill="rgba(29,43,54,.18)"/>
+            <g class="tail"><path d="M92 222 C46 214 14 238 22 262 C30 282 76 270 98 244Z" fill="#6b4a2f"/><path d="M34 248 L80 236 M30 262 L84 248 M48 270 L90 254 M44 236 L60 262 M62 230 L74 258" stroke="#4f3520" stroke-width="2"/></g>
+            <g class="bodyg">
+              <ellipse cx="100" cy="264" rx="15" ry="7" fill="#5a3a22"/><ellipse cx="140" cy="264" rx="15" ry="7" fill="#5a3a22"/>
+              <path d="M80 142 C72 122 168 122 160 142 L172 236 C152 258 88 258 68 236Z" fill="#a0693f"/>
+              <path d="M98 160 C102 150 138 150 142 160 L148 232 C134 246 106 246 92 232Z" fill="#e2b98a"/>
+              <path d="M86 150 L102 150 L98 236 L84 236Z" fill="#ff7a1a" opacity=".9"/><path d="M154 150 L138 150 L142 236 L156 236Z" fill="#ff7a1a" opacity=".9"/>
+              <path d="M86 196 H102 M154 196 H138" stroke="#fff" stroke-width="4"/>
+              <path d="M84 160 C70 176 76 196 98 202" stroke="#8a5733" stroke-width="13" fill="none" stroke-linecap="round"/>
+              <path d="M156 160 C170 176 164 196 142 202" stroke="#8a5733" stroke-width="13" fill="none" stroke-linecap="round"/>
+              <rect x="94" y="178" width="52" height="34" rx="3" fill="#3a6ea5" stroke="#1d2b36" stroke-width="2.5"/>
+              <text x="120" y="196" text-anchor="middle" dominant-baseline="central" font-family="Red Hat Mono" font-weight="700" font-size="15" fill="#fff" direction="ltr">×2</text>
+              <circle cx="98" cy="202" r="7" fill="#5a3a22"/><circle cx="142" cy="202" r="7" fill="#5a3a22"/>
+              <use href="#bvHead"/>
+            </g>
+          </svg>
+        </div>
+        <div class="card site tape">
+          <div class="site-top">
+            <span class="site-title">الموقع</span>
+            <div class="dots" id="dots"></div>
+            <span class="controls"><span class="score" id="score">0/6</span><button class="btn icon sndbtn" aria-label="الصوت"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"/><path class="w" d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/><path class="x" d="M16 9l6 6M22 9l-6 6"/></svg></button></span>
+          </div>
+          <div class="vs" id="gVs"></div>
+          <div class="towerbox"><svg class="towers" id="gTow"></svg></div>
+          <div class="judge">
+            <button class="jbtn" id="jY">الأزرق أكبر <b>YES</b></button>
+            <button class="jbtn" id="jN">مش أكبر <b>NO</b></button>
+            <span class="stamp" id="gStamp"></span>
+            <button class="btn yel" id="gNext" style="display:none">البرج الجاي<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 2 ===== -->
+    <section class="screen" data-title="التحليل">
+      <div class="screen-head">
+        <div><span class="kicker">موقع 2</span><h2>التحليل: نفهم المسألة حتة حتة</h2></div>
+      </div>
+      <div class="an-grid">
+        <div class="card an locked tape">
+          <div class="an-top"><div class="an-ic" style="background:var(--blue)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 20h16"/></svg></div><h3>المدخلات</h3><span class="num">01</span></div>
+          <div class="an-body">
+            <div class="parts"><div class="part a"><b>2</b><small>base1</small></div><div class="part a"><b>10</b><small>power1</small></div><div class="part b"><b>10</b><small>base2</small></div><div class="part b"><b>3</b><small>power2</small></div></div>
+            <small>يعني نقارن <span class="ltr">2¹⁰</span> بـ <span class="ltr">10³</span></small>
+          </div>
+          <div class="q">?</div>
+        </div>
+        <div class="card an locked tape">
+          <div class="an-top"><div class="an-ic" style="background:var(--grn)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div><h3>المخرجات</h3><span class="num">02</span></div>
+          <div class="an-body">
+            <div class="ex">
+              <div><span>2 10 10 3</span><i>1024 &gt; 1000</i><span class="y">YES</span></div>
+              <div><span>4 2 2 4</span><i>16 = 16</i><span class="n">NO</span></div>
+            </div>
+            <small>YES لو الأول أكبر. متساويين؟ يبقى NO</small>
+          </div>
+          <div class="q">?</div>
+        </div>
+        <div class="card an locked tape">
+          <div class="an-top"><div class="an-ic" style="background:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l10 18H2z"/><path d="M12 9v5M12 17.5v.5"/></svg></div><h3>المشكلة</h3><span class="num">03</span></div>
+          <div class="an-body">
+            <div class="mega">2^1000000000000 = 1606938044258990275541962092341162602522202993782792835301376…</div>
+            <small>الأس ممكن يوصل لـ <span class="ltr">10¹²</span>… الرقم ده أكبر من أي ذاكرة!</small>
+          </div>
+          <div class="q">?</div>
+        </div>
+        <div class="card an locked tape">
+          <div class="an-top"><div class="an-ic" style="background:var(--yel);color:var(--ink)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div><h3>الحل</h3><span class="num">04</span></div>
+          <div class="an-body">
+            <div class="rule">
+              <div>بدل ما نحسب الرقم، نحسب <b>ارتفاع البرج</b></div>
+              <div><code><span class="a">power1</span> × log10(<span class="a">base1</span>)</code> مقابل <code><span class="b">power2</span> × log10(<span class="b">base2</span>)</code></div>
+              <div><code>log10(1000) = 3</code> يعني تقريباً عدد الأصفار</div>
+            </div>
+          </div>
+          <div class="q">?</div>
+        </div>
+      </div>
+      <div class="dock">
+        <div class="av"><svg viewBox="68 26 104 120"><use href="#bvHead"/></svg></div>
+        <div class="txt" id="anSay"></div>
+        <div class="controls">
+          <button class="btn yel" id="anNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg><span id="anNextTxt">اكشف</span></button>
+          <button class="btn icon" id="anReset" aria-label="من الأول"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 3 ===== -->
+    <section class="screen" data-title="التصميم">
+      <div class="screen-head">
+        <div><span class="kicker">موقع 3</span><h2>التصميم: نبني الحل خطوة بخطوة</h2></div>
+        <p>كل ضغطة = سطر سودو كود + شكل في الفلوتشارت</p>
+      </div>
+      <div class="design">
+        <div class="card pseudo-card">
+          <span class="label">السودو كود</span>
+          <ol class="pseudo" id="pseudo">
+            <li><span class="n">1</span>ابدأ</li>
+            <li><span class="n">2</span>اقرأ <code>base1 power1 base2 power2</code></li>
+            <li><span class="n">3</span><code>height1 ← power1 × log10(base1)</code></li>
+            <li><span class="n">4</span><code>height2 ← power2 × log10(base2)</code></li>
+            <li><span class="n">5</span>لو <code>height1 &gt; height2</code></li>
+            <li class="ind"><span class="n">6</span>اطبع <code>YES</code></li>
+            <li class="ind"><span class="n">7</span>غير كده: اطبع <code>NO</code></li>
+            <li><span class="n">8</span>انتهي</li>
+          </ol>
+          <div class="progress"><i id="buildBar"></i></div>
+        </div>
+        <div class="card flow-card">
+          <svg id="flow" viewBox="0 4 420 524">
+            <defs>
+              <marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#667a88"/></marker>
+              <marker id="arO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ff7a1a"/></marker>
+            </defs>
+            <g class="edge" id="e-1"><path pathLength="100" d="M210 52 V72"/></g>
+            <g class="edge" id="e-2"><path pathLength="100" d="M210 116 V136"/></g>
+            <g class="edge" id="e-3"><path pathLength="100" d="M210 182 V202"/></g>
+            <g class="edge" id="e-4"><path pathLength="100" d="M210 248 V270"/></g>
+            <g class="edge" id="e-y"><path pathLength="100" d="M320 320 H336 V400"/><text x="332" y="306">نعم</text></g>
+            <g class="edge" id="e-n"><path pathLength="100" d="M100 320 H86 V400"/><text x="90" y="306">لا</text></g>
+            <g class="edge" id="e-ye"><path pathLength="100" d="M332 446 V501 H262"/></g>
+            <g class="edge" id="e-ne"><path pathLength="100" d="M86 446 V501 H158"/></g>
+            <g class="node" id="n-start"><rect class="sh" x="160" y="10" width="100" height="42" rx="21"/><text x="210" y="31">ابدأ</text></g>
+            <g class="node" id="n-in"><path class="sh" d="M106 74 H330 L310 116 H86Z"/><text x="208" y="95" class="mono" direction="ltr">base1 power1 base2 power2</text></g>
+            <g class="node pr" id="n-p1"><rect class="sh" x="80" y="138" width="260" height="44" rx="6"/><text x="210" y="151" class="cap" direction="ltr">height1 =</text><text x="210" y="168" class="mono" direction="ltr">power1 * log10(base1)</text></g>
+            <g class="node pr" id="n-p2"><rect class="sh" x="80" y="204" width="260" height="44" rx="6"/><text x="210" y="217" class="cap" direction="ltr">height2 =</text><text x="210" y="234" class="mono" direction="ltr">power2 * log10(base2)</text></g>
+            <g class="node dec" id="n-d"><path class="sh" d="M210 272 L320 320 L210 368 L100 320Z"/><text x="210" y="320" class="mono" direction="ltr">height1 &gt; height2</text></g>
+            <g class="node okn" id="n-oY"><path class="sh" d="M268 402 H414 L398 446 H252Z"/><text x="333" y="424">اطبع YES</text></g>
+            <g class="node bad" id="n-oN"><path class="sh" d="M28 402 H158 L142 446 H12Z"/><text x="85" y="424">اطبع NO</text></g>
+            <g class="node" id="n-end"><rect class="sh" x="160" y="480" width="100" height="42" rx="21"/><text x="210" y="501">انتهي</text></g>
+          </svg>
+        </div>
+        <div class="card trace locked" id="trace">
+          <div><span class="label">جرّب على مثال</span><div class="chips" id="flowChips"></div></div>
+          <button class="btn grn" id="flowRun"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg>تشغيل</button>
+          <div><span class="label">البرجين</span><div class="minibox"><svg class="towers" id="fTow"></svg></div></div>
+          <div><span class="label">الخطوة</span><div class="cmpbox" id="fCmp">—</div></div>
+          <div><span class="label">المخرج</span><div class="outbig" id="fOut"></div></div>
+        </div>
+      </div>
+      <div class="dock">
+        <div class="av"><svg viewBox="68 26 104 120"><use href="#bvHead"/></svg></div>
+        <div class="txt" id="dsSay"></div>
+        <div class="controls">
+          <button class="btn yel" id="bNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span id="bNextTxt"></span></button>
+          <button class="btn" id="bAll">ابني الكل</button>
+          <button class="btn icon" id="bReset" aria-label="امسح وابني من الأول"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 4 ===== -->
+    <section class="screen" data-title="التنفيذ">
+      <div class="screen-head">
+        <div><span class="kicker">موقع 4</span><h2>التنفيذ: الكود جوه الجهاز</h2></div>
+        <div class="chips" id="ideChips"></div>
+      </div>
+      <div class="split">
+        <div class="ide">
+          <div class="ide-bar"><span class="d" style="background:#ff6b6b"></span><span class="d" style="background:#ffd27a"></span><span class="d" style="background:#7be0a5"></span><span class="tab">hard_compare.py</span></div>
+          <div class="code" id="code"></div>
+        </div>
+        <div class="card mem">
+          <div><span class="label">الذاكرة</span><div class="mrow" id="memRow"></div></div>
+          <div><div class="mrow" id="memRow2"></div></div>
+          <div class="minibox"><svg class="towers" id="mTow"></svg></div>
+          <div><span class="label">الحسبة</span><div class="calcl" id="calcLane"></div></div>
+          <div><span class="label">الشاشة</span><div class="console"><span class="pr">&gt;&gt;&gt;</span><span id="conOut"></span></div></div>
+        </div>
+      </div>
+      <div class="dock">
+        <div class="av"><svg viewBox="68 26 104 120"><use href="#bvHead"/></svg></div>
+        <div class="txt" id="ideSay"></div>
+        <div class="controls">
+          <button class="btn yel" id="ideStep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>خطوة</button>
+          <button class="btn grn" id="ideRun"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg><span>تشغيل تلقائي</span></button>
+          <button class="btn icon sndbtn" aria-label="الصوت"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"/><path class="w" d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/><path class="x" d="M16 9l6 6M22 9l-6 6"/></svg></button>
+          <button class="btn icon" id="ideReset" aria-label="من الأول"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 5 ===== -->
+    <section class="screen" data-title="الاختبار">
+      <div class="screen-head">
+        <div><span class="kicker">موقع 5</span><h2>الاختبار: جرّب أي برجين</h2></div>
+        <p>base1 power1 base2 power2</p>
+      </div>
+      <div class="split">
+        <div class="card tside">
+          <div>
+            <span class="label">Input</span>
+            <div class="test-in">
+              <input class="field" id="tIn" value="2 100 3 60" spellcheck="false" autocomplete="off">
+              <button class="btn grn" id="tRun"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg>شغّل</button>
+            </div>
+            <div class="err" id="tErr"></div>
+          </div>
+          <div><span class="label">أمثلة جاهزة</span><div class="chips" id="tChips"></div></div>
+          <div class="controls"><button class="btn" id="tRand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/></svg>برجين عشوائي</button></div>
+          <div><span class="label">Output</span><div class="outbig" id="tOut"></div></div>
+        </div>
+        <div class="card tvis tape">
+          <div class="vs" id="tVs"></div>
+          <div class="towerbox"><svg class="towers" id="tTow"></svg></div>
+          <div class="tsteps" id="tSteps"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 6 ===== -->
+    <section class="screen" data-title="التطوير">
+      <div class="screen-head">
+        <div><span class="kicker">موقع 6</span><h2>التطوير: لما البرجين يبقوا متساويين</h2></div>
+        <div class="seg" id="seg">
+          <button class="on" data-v="0">العادي <b>8</b></button>
+          <button data-v="1">مع isclose <b>6</b></button>
+        </div>
+      </div>
+      <div class="split">
+        <div class="ide">
+          <div class="ide-bar"><span class="d" style="background:#ff6b6b"></span><span class="d" style="background:#ffd27a"></span><span class="d" style="background:#7be0a5"></span><span class="tab" id="impTab">hard_compare.py</span></div>
+          <div class="code" id="impCode"></div>
+        </div>
+        <div class="card imp-card tape">
+          <h3><span class="an-ic" style="background:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>الكسور في الكمبيوتر بتتقرّب</h3>
+          <p>اللوغاريتم بيطلع كسر طويل، والكمبيوتر بيقرّبه. فبرجين متساويين بالظبط ممكن يطلع بينهم فرق صغير جداً.</p>
+          <div class="fl">
+            <div><span class="c"># 4² = 2⁴ = 16</span></div>
+            <div>2 * log10(4) <span class="c">≈</span> 1.2041199826559248</div>
+            <div>4 * log10(2) <span class="c">≈</span> 1.2041199826559248</div>
+            <div><span class="y">math.isclose(...)</span> <span class="c"># True = اعتبرهم متساويين</span></div>
+          </div>
+          <p><span class="ltr">isclose</span> بتقول: لو الفرق صغير جداً، يبقوا متساويين، والمخرج NO.</p>
+          <div class="nextrow"><b>خلصنا شيت 1! الجاي: Loops</b><button class="btn yel" id="nextBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>شوف التلميح</button></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bottom">
+    <button class="btn" id="prev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg><span class="nav-txt">السابق</span></button>
+    <div class="hints" id="hints"></div>
+    <button class="btn yel" id="next"><span class="nav-txt">التالي</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+  </footer>
+</div>
+
+<div class="sheet-wrap" id="sheetWrap">
+  <div class="sheet" role="dialog" aria-modal="true">
+    <div class="grab"></div>
+    <div class="sheet-head">
+      <div class="av"><svg viewBox="68 26 104 120"><use href="#bvHead"/></svg></div>
+      <h3 id="sheetTitle"></h3>
+      <button class="x" id="sheetClose" aria-label="إغلاق"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="sheet-body" id="sheetBody"></div>
+  </div>
+</div>
+
+<script>
+/* ================= logic ================= */
+const SAMPLES = ["2 10 10 3", "2 3 3 2", "4 2 2 4", "2 100 3 60"];
+const $ = id => document.getElementById(id);
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const retrigger = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
+const SUP = s => String(s).replace(/\d/g, d => '⁰¹²³⁴⁵⁶⁷⁸⁹'[d]);
+const fmtH = x => String(+x.toFixed(4));
+function parse(str){
+  const t = str.trim().split(/\s+/);
+  if (t.length !== 4 || !t.every(x => /^\d{1,13}$/.test(x))) return { err:'اكتب 4 أرقام موجبة بينهم مسافات' };
+  const [b1, p1, b2, p2] = t.map(Number);
+  if (b1 < 1 || b2 < 1 || p1 < 1 || p2 < 1) return { err:'كل الأرقام لازم تكون 1 أو أكبر' };
+  if (b1 > 1e7 || b2 > 1e7) return { err:'الأساس لحد 10000000 بس' };
+  if (p1 > 1e12 || p2 > 1e12) return { err:'الأس لحد 10¹² بس' };
+  const h1 = p1 * Math.log10(b1), h2 = p2 * Math.log10(b2);
+  let yes, v1 = null, v2 = null, exact = false;
+  if (p1 <= 3000 && p2 <= 3000){
+    const x = BigInt(b1) ** BigInt(p1), y = BigInt(b2) ** BigInt(p2);
+    yes = x > y; exact = true; var eq = x === y;
+    const s1 = x.toString(), s2 = y.toString();
+    v1 = s1.length <= 9 ? s1 : null; v2 = s2.length <= 9 ? s2 : null;
+  } else {
+    yes = h1 > h2 && Math.abs(h1 - h2) > 1e-9 * Math.max(Math.abs(h1), Math.abs(h2));
+  }
+  const digits = (b, h) => b === 1 ? 1 : Math.floor(h + 1e-9) + 1;
+  return { text:`${b1} ${p1} ${b2} ${p2}`, b1, p1, b2, p2, h1, h2, yes, out:yes ? 'YES' : 'NO', v1, v2, d1:digits(b1, h1), d2:digits(b2, h2), equal:exact ? eq : (!yes && Math.abs(h1 - h2) <= 1e-9 * Math.max(Math.abs(h1), Math.abs(h2))) };
+}
+
+/* ================= sounds (Web Audio, synthesized) ================= */
+let actx = null, soundOn = true, noiseBuf = null, master = null, revIn = null;
+function ac(){
+  if (!soundOn) return null;
+  try {
+    if (!actx){
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      const sr = actx.sampleRate;
+      // warm pink noise
+      noiseBuf = actx.createBuffer(1, sr * 2, sr);
+      const d = noiseBuf.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (let i = 0; i < d.length; i++){
+        const w = Math.random() * 2 - 1;
+        b0 = .99886 * b0 + w * .0555179; b1 = .99332 * b1 + w * .0750759; b2 = .969 * b2 + w * .153852;
+        b3 = .8665 * b3 + w * .3104856; b4 = .55 * b4 + w * .5329522; b5 = -.7616 * b5 - w * .016898;
+        d[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * .5362) * .11; b6 = w * .115926;
+      }
+      // master: gentle compression, small room reverb
+      const comp = actx.createDynamicsCompressor();
+      comp.threshold.value = -20; comp.ratio.value = 3; comp.attack.value = .003; comp.release.value = .2;
+      master = actx.createGain(); master.gain.value = .85;
+      master.connect(comp); comp.connect(actx.destination);
+      const conv = actx.createConvolver();
+      const len = Math.floor(sr * 1.4), ir = actx.createBuffer(2, len, sr);
+      for (let ch = 0; ch < 2; ch++){ const x = ir.getChannelData(ch); for (let i = 0; i < len; i++) x[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2); }
+      conv.buffer = ir;
+      revIn = actx.createGain(); revIn.gain.value = .5;
+      const tone = actx.createBiquadFilter(); tone.type = 'lowpass'; tone.frequency.value = 5000;
+      revIn.connect(conv); conv.connect(tone); tone.connect(comp);
+    }
+    if (actx.state === 'suspended') actx.resume();
+    return actx;
+  } catch (e) { return null; }
+}
+function route(node, pan = 0, panTo = null, t = 0, dur = 0, rv = 0){
+  let n = node;
+  if (actx.createStereoPanner){
+    const p = actx.createStereoPanner();
+    p.pan.setValueAtTime(pan, t || actx.currentTime);
+    if (panTo !== null) p.pan.linearRampToValueAtTime(panTo, t + dur);
+    n.connect(p); n = p;
+  }
+  n.connect(master);
+  if (rv){ const sd = actx.createGain(); sd.gain.value = rv; n.connect(sd); sd.connect(revIn); }
+}
+function nz({ t, dur, type = 'bandpass', f0, f1 = f0, q = 1, peak = .2, a = .01, pan = 0, panTo = null, rv = 0 }){
+  const c = actx, src = c.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+  const f = c.createBiquadFilter(); f.type = type; f.Q.value = q;
+  f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+  const g = c.createGain();
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + a); g.gain.setTargetAtTime(0, t + a, Math.max(.008, (dur - a) / 3.5));
+  src.connect(f); f.connect(g); route(g, pan, panTo, t, dur, rv);
+  src.start(t, Math.random() * 1.5); src.stop(t + dur + .3);
+}
+function os({ t, dur, f0, f1 = null, type = 'sine', peak = .1, a = .006, pan = 0, rv = 0 }){
+  const c = actx, o = c.createOscillator(); o.type = type;
+  o.frequency.setValueAtTime(f0, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  const g = c.createGain();
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + a); g.gain.setTargetAtTime(0, t + a, Math.max(.01, (dur - a) / 4));
+  o.connect(g); route(g, pan, null, t, dur, rv);
+  o.start(t); o.stop(t + dur + .3);
+}
+/* soft FM bell: warm, glassy, never harsh */
+function bell(f, t, dur = .8, peak = .1, rv = .35, pan = 0){
+  const c = actx, car = c.createOscillator(), mod = c.createOscillator(), mg = c.createGain(), g = c.createGain();
+  car.frequency.value = f; mod.frequency.value = f * 2.01;
+  mg.gain.setValueAtTime(f * 1.1, t); mg.gain.setTargetAtTime(0, t, .07);
+  mod.connect(mg); mg.connect(car.frequency);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + .004); g.gain.setTargetAtTime(0, t + .004, dur / 4);
+  car.connect(g); route(g, pan, null, t, dur, rv);
+  car.start(t); mod.start(t); car.stop(t + dur + .4); mod.stop(t + dur + .4);
+}
+function knock(t, pan = 0, vol = 1){
+  nz({ t, dur:.07, f0:1100, q:8, peak:.45 * vol, a:.002, pan });
+  os({ t, dur:.14, f0:220, f1:165, peak:.22 * vol, a:.003, pan });
+}
+
+const now = () => actx.currentTime + .015;
+const SND = {
+  /* wooden block landing on the stack; pitch rises with height */
+  block(i = 0){ if (!ac()) return; const t = now(), f = 180 + Math.min(i, 30) * 9;
+    knock(t, (Math.random() - .5) * .4, .8); os({ t, dur:.14, f0:f * 1.6, f1:f, type:'triangle', peak:.12, a:.003 }); nz({ t, dur:.05, type:'lowpass', f0:2200, f1:600, q:.8, peak:.15, a:.002 }); },
+  /* concrete pour: rising rumble for a tall continuous tower */
+  rise(dur = 1.2){ if (!ac()) return; const t = now(); nz({ t, dur, type:'lowpass', f0:180, f1:900, q:1, peak:.22, a:dur * .3, rv:.2 }); os({ t, dur, f0:70, f1:180, type:'sawtooth', peak:.03, a:dur * .3 }); },
+  /* measuring tape zip */
+  tape(){ if (!ac()) return; const t = now(); nz({ t, dur:.35, f0:1800, f1:5200, q:3, peak:.12, a:.02, pan:-.4, panTo:.4 }); },
+  stampY(){ if (!ac()) return; const t = now(); knock(t, 0, 1); bell(988, t + .05, .8, .12, .4, -.15); bell(1319, t + .14, .9, .1, .45, .15); },
+  stampN(){ if (!ac()) return; const t = now(); knock(t, 0, 1); os({ t:t + .04, dur:.3, f0:330, f1:262, type:'triangle', peak:.12, a:.01 }); },
+  tick(){ if (!ac()) return; const t = now(); nz({ t, dur:.04, f0:3400, f1:2600, q:2.5, peak:.2, a:.002 }); os({ t, dur:.04, f0:2200, peak:.03 }); },
+  yes(){ if (!ac()) return; const t = now(); bell(880, t, .7, .12, .35, -.15); bell(1319, t + .09, .8, .1, .4, .15); },
+  no(){ if (!ac()) return; const t = now(); os({ t, dur:.32, f0:392, f1:330, type:'triangle', peak:.1, a:.015 }); os({ t, dur:.32, f0:196, f1:165, peak:.08, a:.015 }); },
+  move(dur = .6){ if (!ac()) return; const t = now(); nz({ t, dur, f0:520, f1:2200, q:1.3, peak:.14, a:dur * .35, pan:-.35, panTo:.35 }); },
+  snap(){ if (!ac()) return; const t = now(); os({ t, dur:.22, f0:120, f1:55, peak:.3, a:.004 }); os({ t, dur:.06, f0:430, f1:950, peak:.09, a:.003 }); bell(1568, t + .04, .8, .08, .45, -.2); bell(2093, t + .07, .8, .06, .45, .2); },
+  type(){ if (!ac()) return; const t = now(); nz({ t, dur:.035, f0:1900, q:1.4, peak:.18, a:.002, pan:(Math.random() - .5) * .3 }); os({ t, dur:.04, f0:150, peak:.045, a:.002 }); },
+  win(){ if (!ac()) return; const t = now(); [1047, 1319, 1568, 2093].forEach((f, i) => bell(f, t + i * .1, 1.1, .1, .5, (i - 1.5) * .3)); [2637, 3136, 3951].forEach((f, i) => bell(f, t + .45 + i * .06, .6, .03, .6, (i - 1) * .6)); }
+};
+function setSound(on){ soundOn = on; document.querySelectorAll('.sndbtn').forEach(b => b.classList.toggle('off', !on)); }
+document.querySelectorAll('.sndbtn').forEach(b => b.onclick = () => setSound(!soundOn));
+
+/* ================= motion helpers ================= */
+const easeIO = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+function arcFrames(x0, y0, x1, y1, lift, rot = 0, sMid = 1.06, n = 36){
+  const f = [];
+  for (let i = 0; i <= n; i++){ const p = i / n, e = easeIO(p), b = Math.sin(Math.PI * e);
+    f.push({ transform:`translate(${x0 + (x1 - x0) * e}px,${y0 + (y1 - y0) * e - lift * b}px) rotate(${rot * b}deg) scale(${1 + (sMid - 1) * b})`, offset:p }); }
+  return f;
+}
+function squash(el, big = 1){
+  const k = [[0,0],[.16,-.2],[-.07,.09],[.035,-.04],[-.015,.018],[0,0]];
+  return el.animate(k.map(([x, y], i) => ({ transform:`scale(${1 + x * big},${1 + y * big})`, offset:i / (k.length - 1) })), { duration:560, easing:'linear' }).finished;
+}
+const SPARK_C = ['#ffc21a', '#ff7a1a', '#3a6ea5', '#2fa86a', '#1d2b36'];
+function burst(x, y, n = 14, colors = SPARK_C){
+  const ring = document.createElement('div'); ring.className = 'ring'; ring.style.borderColor = colors[0]; document.body.appendChild(ring);
+  ring.animate([{ transform:`translate(${x - 6}px,${y - 6}px) scale(.3)`, width:'12px', height:'12px', opacity:1 }, { transform:`translate(${x - 34}px,${y - 34}px) scale(1)`, width:'68px', height:'68px', opacity:0 }],
+    { duration:560, easing:'cubic-bezier(.22,1,.36,1)', fill:'forwards' }).finished.then(() => ring.remove());
+  for (let i = 0; i < n; i++){
+    const d = document.createElement('div'), sz = 5 + Math.random() * 6;
+    d.className = 'spark';
+    Object.assign(d.style, { width:sz + 'px', height:sz + 'px', background:colors[i % colors.length] });
+    document.body.appendChild(d);
+    const a = Math.PI * 2 * i / n + Math.random() * .4, dist = 30 + Math.random() * 50;
+    d.animate([{ transform:`translate(${x}px,${y}px) rotate(0)`, opacity:1 }, { transform:`translate(${x + Math.cos(a) * dist}px,${y + Math.sin(a) * dist + 14}px) rotate(220deg) scale(.3)`, opacity:0 }],
+      { duration:650 + Math.random() * 250, easing:'cubic-bezier(.2,.7,.3,1)', fill:'forwards' }).finished.then(() => d.remove());
+  }
+}
+const center = el => { const r = el.getBoundingClientRect(); return { x:r.left + r.width / 2, y:r.top + r.height / 2 }; };
+
+/* ================= tower component ================= */
+const NS = 'http://www.w3.org/2000/svg';
+function mk(tag, attrs, parent, txt){ const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (txt != null) e.textContent = txt; if (parent) parent.appendChild(e); return e; }
+function makeTowers(svg, opt = {}){
+  const c = !!opt.compact, W = 600, H = c ? 260 : 380, G = H - (c ? 52 : 64), TOP = c ? 46 : 58, TW = c ? 130 : 120;
+  const XS = [190, 410], fs = c ? 1.45 : 1;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('direction', 'ltr');
+  let r = null, unit = 1, layers = {};
+  function setup(rr){
+    r = rr; svg.innerHTML = '';
+    mk('rect', { x:0, y:G, width:W, height:H - G, class:'gnd' }, svg);
+    mk('path', { d:`M0 ${G} H${W}`, class:'gline' }, svg);
+    const maxH = Math.max(r.h1, r.h2, .3);
+    unit = (G - TOP) / maxH;
+    layers.t = mk('g', {}, svg); layers.lab = mk('g', {}, svg); layers.cmp = mk('g', {}, svg);
+    [[r.b1, r.p1, 'a'], [r.b2, r.p2, 'b']].forEach(([b, p], i) => {
+      const t = mk('text', { x:XS[i], y:G + (c ? 28 : 32), class:'base', 'font-size':24 * fs }, layers.lab);
+      t.textContent = b; const s = mk('tspan', { 'font-size':15 * fs, dy:-9 * fs }, t, String(p));
+    });
+  }
+  const heightOf = i => (i ? r.h2 : r.h1) * unit;
+  const blockCount = i => { const p = i ? r.p2 : r.p1, b = i ? r.b2 : r.b1; return b === 1 ? 0 : p <= 24 ? p : 0; };
+  function topLabel(i){
+    const h = heightOf(i), y = G - h - (c ? 18 : 20), b = i ? r.b2 : r.b1, v = i ? r.v2 : r.v1, d = i ? r.d2 : r.d1;
+    const txt = v != null ? v : `${d} رقم`;
+    mk('text', { x:XS[i], y, class:'val', 'font-size':17 * fs, direction: v != null ? 'ltr' : 'rtl' }, layers.lab, txt);
+  }
+  return {
+    setup,
+    async build(animate = true){
+      const tasks = [0, 1].map(async i => {
+        const cls = i ? 'b' : 'a', b = i ? r.b2 : r.b1, p = i ? r.p2 : r.p1, n = blockCount(i), H = heightOf(i), x = XS[i] - TW / 2;
+        if (b === 1){ mk('rect', { x, y:G - 4, width:TW, height:4, class:'blk ' + cls }, layers.t); topLabel(i); return; }
+        if (n){
+          const bh = H / n, delay = animate ? Math.min(170, 2400 / n) : 0;
+          for (let k = 0; k < n; k++){
+            const y = G - bh * (k + 1);
+            const g = mk('g', {}, layers.t);
+            mk('rect', { x, y, width:TW, height:bh, rx:Math.min(3, bh / 4), class:'blk ' + cls }, g);
+            if (bh >= 15) mk('text', { x:XS[i], y:y + bh / 2, class:'blkt', 'font-size':Math.min(14, bh * .6) * fs }, g, '×' + b);
+            if (animate){
+              g.animate([{ transform:`translateY(${-(y + bh) - 20}px)`, opacity:0 }, { transform:'translateY(4px)', opacity:1, offset:.75 }, { transform:'none', opacity:1 }], { duration:360, easing:'cubic-bezier(.4,0,.6,1)', fill:'backwards' });
+              setTimeout(() => SND.block(k), 270); await wait(delay);
+            }
+          }
+          if (animate) await wait(300);
+        } else {
+          const g = mk('g', {}, layers.t);
+          mk('rect', { x, y:G - H, width:TW, height:H, rx:3, class:'blk ' + cls }, g);
+          for (let k = 1; k < 12; k++) mk('path', { d:`M${x} ${G - H * k / 12} H${x + TW}`, stroke:'rgba(255,255,255,.35)', 'stroke-width':1.5 }, g);
+          mk('text', { x:XS[i], y:G - H / 2, class:'blkt', 'font-size':15 * fs }, g, `×${b}  (${p})`);
+          if (animate){ g.style.transformBox = 'fill-box'; g.style.transformOrigin = '50% 100%'; SND.rise(1.2); await g.animate([{ transform:'scaleY(0)' }, { transform:'scaleY(1.03)', offset:.85 }, { transform:'scaleY(1)' }], { duration:1300, easing:'cubic-bezier(.3,.7,.3,1)' }).finished; }
+        }
+        topLabel(i);
+      });
+      await Promise.all(tasks);
+    },
+    compare(animate = true){
+      const h1 = heightOf(0), h2 = heightOf(1), lo = Math.min(h1, h2), y = G - lo;
+      const line = mk('path', { d:`M${XS[0] - TW / 2 - 20} ${y} H${XS[1] + TW / 2 + 20}`, class:'cmpl' }, layers.cmp);
+      if (r.yes) mk('rect', { x:XS[0] - TW / 2 - 4, y:G - h1 - 4, width:TW + 8, height:h1 + 8, class:'win' }, layers.cmp);
+      else if (!r.equal && r.h2 > r.h1) mk('rect', { x:XS[1] - TW / 2 - 4, y:G - h2 - 4, width:TW + 8, height:h2 + 8, class:'win' }, layers.cmp);
+      if (animate){ SND.tape(); line.animate([{ strokeDashoffset:200, opacity:0 }, { strokeDashoffset:0, opacity:1 }], { duration:500 }); }
+    },
+    towerEl(i){ return layers.t; }
+  };
+}
+const vsHTML = r => `<span class="a">${r.b1}<sup>${r.p1}</sup></span><span class="q">؟</span><span class="b">${r.b2}<sup>${r.p2}</sup></span>`;
+
+/* ================= navigation ================= */
+const screens = [...document.querySelectorAll('.screen')];
+let cur = 0;
+screens.forEach((s, i) => { const b = document.createElement('button'); b.className = 'step-btn'; b.innerHTML = `<i>${i+1}</i><span>${s.dataset.title}</span>`; b.onclick = () => go(i); $('stepper').appendChild(b); });
+function go(i){
+  if (i < 0 || i >= screens.length || i === cur) return;
+  screens[cur].classList.remove('active'); screens[i].classList.add('active');
+  cur = i; syncNav();
+  if (cur !== 2){ stopFlow(); stopBuildAll(); }
+  if (cur !== 3) stopIde();
+}
+function syncNav(){
+  [...$('stepper').children].forEach((b, i) => { b.classList.toggle('active', i === cur); b.classList.toggle('done', i < cur); });
+  $('prev').disabled = cur === 0; $('next').disabled = cur === screens.length - 1;
+  if (cur !== 0) $('next').classList.remove('pulse');
+}
+$('prev').onclick = () => go(cur - 1);
+$('next').onclick = () => go(cur + 1);
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === 'Escape') return closeSheet();
+  if ($('sheetWrap').classList.contains('open')) return;
+  if (e.key === 'ArrowLeft') go(cur + 1);
+  if (e.key === 'ArrowRight') go(cur - 1);
+});
+syncNav();
+
+/* ================= 1. game ================= */
+const ROUNDS = ["2 3 3 2", "3 3 2 4", "2 10 10 3", "4 2 2 4", "9 7 3 13", "2 100 3 60"];
+const gT = makeTowers($('gTow')), bvr = $('bvr');
+let gi = 0, gScore = 0, gBusy = false, res = [];
+const setFace = f => { bvr.classList.remove('happy', 'oops'); if (f) bvr.classList.add(f); };
+function renderDots(){ $('dots').innerHTML = ROUNDS.map((_, i) => `<i class="${res[i] === true ? 'ok' : res[i] === false ? 'no' : i === gi ? 'cur' : ''}"></i>`).join(''); $('score').textContent = `${gScore}/${ROUNDS.length}`; }
+function loadRound(){
+  const r = parse(ROUNDS[gi]);
+  $('gVs').innerHTML = vsHTML(r);
+  gT.setup(r);
+  ['jY','jN'].forEach(id => { $(id).classList.remove('chosen'); $(id).disabled = false; $(id).style.display = ''; });
+  $('gStamp').style.display = 'none'; $('gStamp').getAnimations().forEach(a => a.cancel());
+  $('gNext').style.display = 'none';
+  setFace(null); renderDots();
+  $('bvSay').innerHTML = gi === ROUNDS.length - 1 ? 'الأرقام دي ضخمة جداً!<br>مش هنقدر نحسبها… بس نقدر <b>نبني</b>' : 'كل برج بيتبني من <b>أدوار</b> متشابهة.<br>توقّع: الأزرق أكبر؟';
+  retrigger($('bvSay'), 'pop');
+}
+async function guess(saysYes){
+  if (gBusy) return; gBusy = true;
+  const r = parse(ROUNDS[gi]);
+  ['jY','jN'].forEach(id => $(id).disabled = true);
+  $(saysYes ? 'jY' : 'jN').classList.add('chosen'); SND.tick();
+  bvr.classList.add('work');
+  $('bvSay').innerHTML = 'بنبني… كل دور = ضرب مرة'; retrigger($('bvSay'), 'pop');
+  await gT.build(true);
+  bvr.classList.remove('work');
+  await wait(250); gT.compare(); await wait(600);
+  const right = saysYes === r.yes;
+  res[gi] = right; if (right) gScore++;
+  renderDots();
+  ['jY','jN'].forEach(id => $(id).style.display = 'none');
+  const st = $('gStamp'); st.textContent = r.out; st.className = 'stamp ' + (r.yes ? 'y' : 'n'); st.style.display = '';
+  st.animate([{ opacity:0, transform:'rotate(-6deg) scale(2.2)' }, { opacity:1, transform:'rotate(-6deg) scale(.92)', offset:.7 }, { opacity:1, transform:'rotate(-6deg) scale(1)' }], { duration:420, easing:'cubic-bezier(.5,0,.75,0)', fill:'forwards' });
+  setTimeout(() => { (r.yes ? SND.stampY : SND.stampN)(); const c = center(st); burst(c.x, c.y, 12); }, 300);
+  await wait(500);
+  setFace(right ? 'happy' : 'oops');
+  const why = r.equal ? `البرجين <b>متساويين</b> (${r.v1} = ${r.v2})، فالأزرق مش أكبر` : r.v1 != null && r.v2 != null ? `<span class="ltr">${r.v1} ${r.yes ? '>' : '<'} ${r.v2}</span>` : `الأزرق حوالي <b>${r.d1}</b> رقم، والبرتقاني <b>${r.d2}</b> رقم`;
+  $('bvSay').innerHTML = (right ? 'توقّع مظبوط! ' : 'المرة الجاية! ') + '<br>' + why; retrigger($('bvSay'), 'pop');
+  (right ? SND.yes : SND.no)();
+  const last = gi === ROUNDS.length - 1;
+  $('gNext').style.display = '';
+  $('gNext').innerHTML = last ? 'ابني تاني' : 'البرج الجاي<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
+  if (last){ setTimeout(() => { SND.win(); setFace('happy'); $('bvSay').innerHTML = `خلصنا البناء!<br>توقعت صح <b>${gScore} من ${ROUNDS.length}</b>`; retrigger($('bvSay'), 'pop'); }, 1400); $('next').classList.add('pulse'); }
+  gBusy = false;
+}
+$('jY').onclick = () => guess(true);
+$('jN').onclick = () => guess(false);
+$('gNext').onclick = () => { if (gBusy) return; if (gi === ROUNDS.length - 1){ gi = 0; gScore = 0; res = []; } else gi++; loadRound(); };
+loadRound();
+
+/* ================= 2. analysis ================= */
+const anCards = [...document.querySelectorAll('.an')];
+const AN_SAY = [
+  'قبل الكود، لازم نفهم المسألة. دوس "اكشف"',
+  'بنقرا 4 أرقام: أساس وأس للأول، وأساس وأس للتاني',
+  'YES لو الأول أكبر. ولو متساويين يبقى <b>NO</b>',
+  'المشكلة: الأس ممكن يبقى مليون مليون! مستحيل نحسب الرقم',
+  'الحل: نقارن <b>ارتفاع البرج</b> بدل الرقم نفسه: الأس × log10 الأساس'
+];
+let an = 0;
+function renderAn(){
+  anCards.forEach((c, i) => { c.classList.toggle('locked', i >= an); c.classList.toggle('fresh', i === an - 1); });
+  $('anSay').innerHTML = AN_SAY[an];
+  $('anNextTxt').innerHTML = an >= 4 ? 'يلا للتصميم' : `اكشف <span class="ltr">(${an}/4)</span>`;
+}
+$('anNext').onclick = () => { if (an >= 4) return go(2); an++; SND.block(an * 3); renderAn(); };
+$('anReset').onclick = () => { an = 0; renderAn(); };
+renderAn();
+
+/* ================= 3. design ================= */
+const BUILD = [
+  { els:['n-start'], say:'كل برنامج ليه بداية' },
+  { els:['e-1','n-in'], say:'نقرا الـ 4 أرقام' },
+  { els:['e-2','n-p1'], say:'ارتفاع البرج الأول: الأس × log10 الأساس' },
+  { els:['e-3','n-p2'], say:'وارتفاع البرج التاني بنفس الطريقة' },
+  { els:['e-4','n-d'], say:'هل البرج الأول أعلى؟' },
+  { els:['e-y','n-oY'], say:'أيوه: نطبع YES' },
+  { els:['e-n','n-oN'], say:'لأ (أقصر أو قده): نطبع NO' },
+  { els:['e-ye','e-ne','n-end'], say:'التصميم خلص! اختار مثال ودوس "تشغيل"' }
+];
+const NODE_LINE = { 'n-start':0, 'n-in':1, 'n-p1':2, 'n-p2':3, 'n-d':4, 'n-oY':5, 'n-oN':6, 'n-end':7 };
+const pLines = [...document.querySelectorAll('#pseudo li')];
+let built = 0, buildAllTimer = null;
+function buildStep(){
+  if (built >= BUILD.length) return;
+  document.querySelectorAll('#flow .fresh, #pseudo .fresh').forEach(el => el.classList.remove('fresh'));
+  const step = BUILD[built];
+  pLines[built].classList.add('show', 'fresh');
+  step.els.forEach((id, k) => setTimeout(() => { $(id).classList.add('show'); if (id.startsWith('n-')) $(id).classList.add('fresh'); }, k * 180));
+  SND.block(built * 3); $('dsSay').innerHTML = step.say;
+  built++; syncBuild();
+}
+function syncBuild(){
+  $('buildBar').style.width = (built / BUILD.length * 100) + '%';
+  const fin = built >= BUILD.length;
+  $('bNext').disabled = fin; $('bAll').disabled = fin;
+  $('bNextTxt').innerHTML = `ابني <span class="ltr">(${built}/${BUILD.length})</span>`;
+  $('trace').classList.toggle('locked', !fin);
+  if (fin) setTimeout(() => document.querySelectorAll('#flow .fresh').forEach(el => el.classList.remove('fresh')), 1000);
+}
+function stopBuildAll(){ clearInterval(buildAllTimer); buildAllTimer = null; }
+function resetBuild(){
+  stopBuildAll(); stopFlow(); resetTrace(); built = 0;
+  pLines.forEach(li => li.classList.remove('show','fresh','cur'));
+  document.querySelectorAll('#flow .node,#flow .edge').forEach(el => el.classList.remove('show','fresh'));
+  $('dsSay').innerHTML = 'يلا نبني الحل سوا. دوس "ابني"'; syncBuild();
+}
+$('bNext').onclick = () => { stopBuildAll(); buildStep(); };
+$('bAll').onclick = () => { if (buildAllTimer) return; buildStep(); buildAllTimer = setInterval(() => { if (built >= BUILD.length) return stopBuildAll(); buildStep(); }, 750); };
+$('bReset').onclick = resetBuild;
+
+const fT = makeTowers($('fTow'), { compact:true });
+let flowInput = SAMPLES[0], ideInput = SAMPLES[0], custom = null, flowTimer = null;
+function resetTrace(){
+  document.querySelectorAll('#flow .on,#flow .visited').forEach(el => el.classList.remove('on','visited'));
+  pLines.forEach(li => li.classList.remove('cur'));
+  fT.setup(parse(flowInput));
+  $('fCmp').textContent = '—'; $('fOut').className = 'outbig'; $('fOut').textContent = '';
+}
+function stopFlow(){ clearTimeout(flowTimer); flowTimer = null; $('flowRun').disabled = false; }
+function runFlow(){
+  stopFlow(); resetTrace();
+  const r = parse(flowInput);
+  const q = [{ n:'n-start' }, { e:'e-1' }, { n:'n-in', fx:() => { $('fCmp').textContent = r.text; SND.move(.4); } }, { e:'e-2' }];
+  q.push({ n:'n-p1', slow:true, fx:() => { $('fCmp').innerHTML = `<span class="a">height1 = ${r.p1} × log10(${r.b1}) = ${fmtH(r.h1)}</span>`; SND.snap(); } });
+  q.push({ e:'e-3' }, { n:'n-p2', slow:true, fx:() => { $('fCmp').innerHTML = `<span class="b">height2 = ${r.p2} × log10(${r.b2}) = ${fmtH(r.h2)}</span>`; SND.snap(); } });
+  q.push({ e:'e-4' }, { n:'n-d', slow:2, fx:async () => { $('fCmp').innerHTML = `<span>${fmtH(r.h1)} &gt; ${fmtH(r.h2)}</span><span class="${r.yes ? 't' : 'f'}">${r.yes ? 'True' : 'False'}</span>`; await fT.build(true); fT.compare(); setTimeout(r.yes ? SND.yes : SND.no, 200); } });
+  const out = () => { $('fOut').textContent = r.out; $('fOut').className = 'outbig ' + (r.yes ? 'y' : 'n'); SND.type(); setTimeout(SND.type, 100); };
+  if (r.yes) q.push({ e:'e-y' }, { n:'n-oY', fx:out }, { e:'e-ye' }); else q.push({ e:'e-n' }, { n:'n-oN', fx:out }, { e:'e-ne' });
+  q.push({ n:'n-end', fx:() => SND.win() });
+  let k = 0;
+  $('flowRun').disabled = true;
+  $('dsSay').innerHTML = `بنمشي على الفلوتشارت بالمدخل <span class="ltr">${flowInput}</span>`;
+  const tick = () => {
+    if (k >= q.length){ flowTimer = null; $('flowRun').disabled = false; $('dsSay').innerHTML = 'خلصنا! جرّب مثال تاني عشان تشوف طريق تاني'; return; }
+    const s = q[k++];
+    document.querySelectorAll('#flow .on').forEach(el => el.classList.remove('on'));
+    $(s.n || s.e).classList.add('on', 'visited');
+    if (s.n){ pLines.forEach(li => li.classList.remove('cur')); pLines[NODE_LINE[s.n]].classList.add('cur'); }
+    if (s.fx) s.fx();
+    flowTimer = setTimeout(tick, s.e ? 260 : s.slow === 2 ? 3000 : s.slow ? 1100 : 650);
+  };
+  tick();
+}
+$('flowRun').onclick = runFlow;
+resetBuild();
+
+/* ================= chips ================= */
+function renderChips(box, active, onPick){
+  const list = [...SAMPLES]; if (custom && !list.includes(custom)) list.push(custom);
+  box.innerHTML = '';
+  list.forEach(s => { const b = document.createElement('button'); b.className = 'chip' + (s === active ? ' active' : ''); b.textContent = s; b.onclick = () => onPick(s); box.appendChild(b); });
+}
+function refreshChips(){
+  renderChips($('flowChips'), flowInput, s => { flowInput = s; stopFlow(); resetTrace(); refreshChips(); });
+  renderChips($('ideChips'), ideInput, s => { if (ideBusy) return; ideInput = s; stopIde(); resetIde(); refreshChips(); });
+  renderChips($('tChips'), $('tIn').value.trim().replace(/\s+/g, ' '), s => { if (tBusy) return; $('tIn').value = s; runTest(true); });
+}
+
+/* ================= 4. IDE ================= */
+const VA = n => `<span class="va">${n}</span>`, VB = n => `<span class="vb">${n}</span>`, H1 = '<span class="vh">height1</span>', H2 = '<span class="vh">height2</span>';
+const CODE = [
+  `<span class="sk">import</span> <span class="sm">math</span>`,
+  `${VA('base1')}, ${VA('power1')}, ${VB('base2')}, ${VB('power2')} = <span class="sf">map</span>(<span class="sf">int</span>, <span class="sf">input</span>().<span class="sf">split</span>())`,
+  `${H1} = ${VA('power1')} * <span class="sm">math</span>.<span class="sf">log10</span>(${VA('base1')})`,
+  `${H2} = ${VB('power2')} * <span class="sm">math</span>.<span class="sf">log10</span>(${VB('base2')})`,
+  `<span class="sk">if</span> ${H1} > ${H2}:`,
+  `    <span class="sf">print</span>(<span class="ss">"YES"</span>)`,
+  `<span class="sk">else</span>:`,
+  `    <span class="sf">print</span>(<span class="ss">"NO"</span>)`
+];
+const SHORT = [
+  `<span class="sk">import</span> <span class="sm">math</span>`,
+  `${VA('base1')}, ${VA('power1')}, ${VB('base2')}, ${VB('power2')} = <span class="sf">map</span>(<span class="sf">int</span>, <span class="sf">input</span>().<span class="sf">split</span>())`,
+  `${H1} = ${VA('power1')} * <span class="sm">math</span>.<span class="sf">log10</span>(${VA('base1')})`,
+  `${H2} = ${VB('power2')} * <span class="sm">math</span>.<span class="sf">log10</span>(${VB('base2')})`,
+  `bigger = ${H1} > ${H2} <span class="sk">and not</span> <span class="sm">math</span>.<span class="sf">isclose</span>(${H1}, ${H2})`,
+  `<span class="sf">print</span>(<span class="ss">"YES"</span> <span class="sk">if</span> bigger <span class="sk">else</span> <span class="ss">"NO"</span>)`
+];
+const codeHTML = lines => lines.map((l, i) => `<div class="ln"><span class="no">${i+1}</span><span>${l || ' '}</span></div>`).join('');
+$('code').innerHTML = codeHTML(CODE);
+const lnEls = [...$('code').querySelectorAll('.ln')];
+const mT = makeTowers($('mTow'), { compact:true });
+
+let IB = null, idePos = -1, ideTimer = null, ideBusy = false;
+function ideBuild(r){
+  const L = [
+    { line:0, kind:'imp', say:'بنجيب مكتبة <span class="ltr">math</span> علشان فيها <span class="ltr">log10</span>' },
+    { line:1, kind:'read', say:'بنقرا 4 أرقام ونحوّلهم لـ int' },
+    { line:2, kind:'h1', say:`ارتفاع البرج الأزرق: <span class="ltr">${r.p1} × log10(${r.b1}) = ${fmtH(r.h1)}</span>` },
+    { line:3, kind:'h2', say:`ارتفاع البرج البرتقاني: <span class="ltr">${r.p2} × log10(${r.b2}) = ${fmtH(r.h2)}</span>` },
+    { line:4, kind:'check', say:`هل <span class="ltr">${fmtH(r.h1)} > ${fmtH(r.h2)}</span>؟ <b>${r.yes ? 'أيوه' : 'لأ'}</b>` }
+  ];
+  if (r.yes) L.push({ line:5, kind:'print', say:'البرج الأزرق أعلى، بنطبع <b>YES</b>' });
+  else { L.push({ line:6, kind:'else', say:'نروح على else' }); L.push({ line:7, kind:'print', say:'بنطبع <b>NO</b>' }); }
+  return { S:L, r };
+}
+function stateAt(k){
+  const r = IB.r, m = { v:{}, h1:null, h2:null, hl:[], calc:null, out:'', done:[], checked:false };
+  for (let i = 0; i <= k; i++){
+    const s = IB.S[i]; m.hl = []; m.calc = null; m.done.push(s.line);
+    if (s.kind === 'imp') m.calc = '<span>math.log10(1000) = 3</span>';
+    if (s.kind === 'read'){ m.v = { base1:r.b1, power1:r.p1, base2:r.b2, power2:r.p2 }; m.hl = ['base1','power1','base2','power2']; }
+    if (s.kind === 'h1'){ m.h1 = fmtH(r.h1); m.hl = ['height1']; m.calc = `<span class="a">${r.p1} × ${fmtH(Math.log10(r.b1))}</span><span>=</span><span class="a">${fmtH(r.h1)}</span>`; }
+    if (s.kind === 'h2'){ m.h2 = fmtH(r.h2); m.hl = ['height2']; m.calc = `<span class="b">${r.p2} × ${fmtH(Math.log10(r.b2))}</span><span>=</span><span class="b">${fmtH(r.h2)}</span>`; }
+    if (s.kind === 'check'){ m.checked = true; m.hl = ['height1','height2']; m.calc = `<span>${fmtH(r.h1)} &gt; ${fmtH(r.h2)}</span><span class="${r.yes ? 't' : 'f'}">${r.yes ? 'True' : 'False'}</span>`; }
+    if (s.kind === 'print') m.out = r.out;
+  }
+  return m;
+}
+function mb(name, cls, type, v, hl){
+  return `<div class="mbox ${cls}${v == null ? ' empty' : ''}${hl.includes(name) ? ' cur' : ''}" data-v="${name}"><span class="nm">${name}<span class="tag ${type === 'float' ? 'flt' : ''}">${type}</span></span><b>${v == null ? '—' : v}</b></div>`;
+}
+let miniKey = '';
+function renderMini(m){
+  const key = IB.r.text + '|' + m.checked;
+  if (key === miniKey) return; miniKey = key;
+  mT.setup(IB.r); if (m.checked){ mT.build(false); mT.compare(false); }
+}
+function renderIde(memK = idePos, landed = true){
+  const m = stateAt(memK), st = IB.S[idePos], hl = landed ? m.hl : [];
+  const fin = idePos >= IB.S.length - 1;
+  const used = new Set(IB.S.map(s => s.line));
+  lnEls.forEach((el, i) => { el.classList.toggle('cur', !!st && st.line === i); el.classList.toggle('ran', m.done.includes(i)); el.classList.toggle('skip', fin && !used.has(i)); });
+  $('memRow').innerHTML = mb('base1', 'a', 'int', m.v.base1 ?? null, hl) + mb('power1', 'a', 'int', m.v.power1 ?? null, hl) + mb('base2', 'b', 'int', m.v.base2 ?? null, hl) + mb('power2', 'b', 'int', m.v.power2 ?? null, hl);
+  $('memRow2').innerHTML = mb('height1', 'h a', 'float', m.h1, hl) + mb('height2', 'h b', 'float', m.h2, hl);
+  if (landed) renderMini(m);
+  $('calcLane').innerHTML = landed && m.calc ? m.calc : '<span class="ph2">هنا هتشوف كل حسبة</span>';
+  $('conOut').innerHTML = m.out ? `<span class="${IB.r.yes ? 'y' : 'n'}">${m.out}</span>` : '';
+  $('ideSay').innerHTML = st ? st.say : 'دوس "خطوة" وتابع الكود';
+  $('ideStep').disabled = ideBusy || fin;
+}
+const boxB = n => document.querySelector(`.mem .mbox[data-v="${n}"] b`);
+function flyToken(text, from, to, dur, cls = ''){
+  const t = document.createElement('div'); t.className = 'token ' + cls; t.textContent = text; document.body.appendChild(t);
+  const w = t.offsetWidth, h = t.offsetHeight;
+  const fr = arcFrames(from.x - w / 2, from.y - h / 2, to.x - w / 2, to.y - h / 2, 50, 0, 1.12);
+  fr.forEach((k, i) => k.opacity = Math.min(1, i / 4));
+  return t.animate(fr, { duration:dur, easing:'linear', fill:'forwards' }).finished.then(() => t.remove());
+}
+async function animateStep(k){
+  const s = IB.S[k], r = IB.r, D = 760;
+  if (s.kind === 'imp'){ SND.tick(); await wait(300); }
+  else if (s.kind === 'read'){
+    const lr = lnEls[1].getBoundingClientRect(), from = { x:lr.left + lr.width * .7, y:lr.top + lr.height / 2 };
+    SND.move(1);
+    await Promise.all([['base1', r.b1, 'a'], ['power1', r.p1, 'a'], ['base2', r.b2, 'b'], ['power2', r.p2, 'b']].map(([n, v, c], i) => wait(i * 110).then(() => flyToken(String(v), from, center(boxB(n)), D, c))));
+  } else if (s.kind === 'h1' || s.kind === 'h2'){
+    const a = s.kind === 'h1', to = a ? 'height1' : 'height2';
+    SND.move(.7);
+    await Promise.all([flyToken(String(a ? r.p1 : r.p2), center(boxB(a ? 'power1' : 'power2')), center(boxB(to)), D, a ? 'a' : 'b'),
+      wait(120).then(() => flyToken(`log10(${a ? r.b1 : r.b2})`, center(boxB(a ? 'base1' : 'base2')), center(boxB(to)), D, a ? 'a' : 'b'))]);
+  } else if (s.kind === 'check'){
+    ['height1','height2'].forEach(n => boxB(n).parentElement.classList.add('cur'));
+    miniKey = IB.r.text + '|true'; mT.setup(r); SND.tick();
+    await mT.build(true); mT.compare(); await wait(300); (r.yes ? SND.yes : SND.no)(); await wait(260);
+  } else if (s.kind === 'else'){ SND.tick(); await wait(320); }
+  else if (s.kind === 'print'){
+    SND.move(.7);
+    await flyToken(r.out, center($('mTow')), center($('conOut').parentElement), 700, r.yes ? 'g' : 'r');
+  }
+}
+async function ideNext(){
+  if (ideBusy) return;
+  if (idePos >= IB.S.length - 1){ stopIde(); return; }
+  idePos++; ideBusy = true;
+  renderIde(idePos - 1, false);
+  await animateStep(idePos);
+  ideBusy = false;
+  renderIde(idePos, true);
+  const st = IB.S[idePos];
+  const pop = n => { const b = boxB(n); squash(b); const c = center(b); burst(c.x, c.y - 6, 8); };
+  if (st.kind === 'read'){ SND.snap(); ['base1','power1','base2','power2'].forEach(pop); }
+  if (st.kind === 'h1'){ SND.snap(); pop('height1'); }
+  if (st.kind === 'h2'){ SND.snap(); pop('height2'); }
+  if (st.kind === 'print'){ (IB.r.yes ? SND.stampY : SND.stampN)(); setTimeout(SND.win, 250); const c = center($('conOut')); burst(c.x, c.y, 16); }
+  if (idePos >= IB.S.length - 1) stopIde();
+}
+function resetIde(){ IB = ideBuild(parse(ideInput)); idePos = -1; ideBusy = false; miniKey = ''; renderIde(); }
+function stopIde(){ clearInterval(ideTimer); ideTimer = null; $('ideRun').querySelector('span').textContent = 'تشغيل تلقائي'; }
+$('ideStep').onclick = () => { stopIde(); ideNext(); };
+$('ideReset').onclick = () => { if (ideBusy) return; stopIde(); resetIde(); };
+$('ideRun').onclick = () => {
+  if (ideTimer) return stopIde();
+  if (ideBusy) return;
+  if (idePos >= IB.S.length - 1) resetIde();
+  $('ideRun').querySelector('span').textContent = 'إيقاف';
+  ideNext(); ideTimer = setInterval(ideNext, 2600);
+};
+resetIde();
+
+/* ================= 5. test ================= */
+let tBusy = false;
+const tT = makeTowers($('tTow'));
+function prepTest(r){
+  $('tVs').innerHTML = vsHTML(r);
+  tT.setup(r);
+  $('tSteps').innerHTML = [
+    ['ارتفاع البرج الأزرق', `${r.p1} × log10(${r.b1}) = ${fmtH(r.h1)}`, 'a'],
+    ['ارتفاع البرج البرتقاني', `${r.p2} × log10(${r.b2}) = ${fmtH(r.h2)}`, 'b'],
+    ['الأزرق أعلى؟', r.yes ? 'True' : 'False', r.yes ? 't' : 'f']
+  ].map(([k, v, c], i) => `<div class="tstep" id="ts${i}"><span class="n">${i+1}</span><span>${k}</span><span class="r ${c}" id="tr${i}" data-v="${v}"></span></div>`).join('');
+  $('tOut').className = 'outbig'; $('tOut').textContent = '';
+}
+async function runTest(animate = true){
+  if (tBusy) return;
+  const raw = $('tIn').value.trim().replace(/\s+/g, ' '), r = parse(raw);
+  if (r.err){ $('tErr').textContent = r.err; retrigger($('tIn'), 'shake'); return; }
+  $('tErr').textContent = '';
+  if (!SAMPLES.includes(r.text)) custom = r.text;
+  $('tIn').value = r.text; refreshChips();
+  prepTest(r);
+  if (!animate){ tT.build(false); tT.compare(false); [0,1,2].forEach(i => { $('tr' + i).textContent = $('tr' + i).dataset.v; $('ts' + i).classList.add('done'); }); $('tOut').textContent = r.out; $('tOut').className = 'outbig ' + (r.yes ? 'y' : 'n'); return; }
+  tBusy = true; ['tRun','tRand'].forEach(id => $(id).disabled = true);
+  const show = async (i, f) => { const row = $('ts' + i); row.classList.add('on'); SND.tick(); await wait(300); if (f) await f(); $('tr' + i).textContent = $('tr' + i).dataset.v; await wait(350); row.classList.remove('on'); row.classList.add('done'); };
+  await show(0, () => SND.snap());
+  await show(1, () => SND.snap());
+  await show(2, async () => { await tT.build(true); tT.compare(); await wait(400); (r.yes ? SND.stampY : SND.stampN)(); });
+  $('tOut').textContent = ''; $('tOut').className = 'outbig ' + (r.yes ? 'y' : 'n');
+  for (const chr of r.out){ $('tOut').textContent += chr; SND.type(); await wait(90); }
+  SND.win();
+  ['tRun','tRand'].forEach(id => $(id).disabled = false); tBusy = false;
+}
+$('tRun').onclick = () => runTest(true);
+$('tIn').addEventListener('keydown', e => { if (e.key === 'Enter') runTest(true); });
+$('tRand').onclick = () => {
+  if (tBusy) return;
+  const rnd = n => 2 + Math.floor(Math.random() * n), pw = () => Math.random() < .35 ? 25 + Math.floor(Math.random() * 1e6) : 1 + Math.floor(Math.random() * 12);
+  $('tIn').value = `${rnd(20)} ${pw()} ${rnd(20)} ${pw()}`; runTest(true);
+};
+refreshChips(); runTest(false);
+
+/* ================= 6. improve ================= */
+function showVersion(v){
+  [...$('seg').children].forEach(b => b.classList.toggle('on', +b.dataset.v === v));
+  $('impCode').innerHTML = codeHTML(v ? SHORT : CODE);
+  $('impTab').textContent = v ? 'hard_compare_safe.py' : 'hard_compare.py';
+}
+[...$('seg').children].forEach(b => b.onclick = () => showVersion(+b.dataset.v));
+showVersion(0);
+$('nextBtn').onclick = () => openSheet('next');
+
+/* ================= hints ================= */
+const SHEETS = {
+  log: {
+    label:'يعني إيه log10؟', title:'log10 = كام صفر تقريباً',
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4M4 20h16"/><path d="M6 17c3-1 5-4 7-8s3-5 6-5"/></svg>',
+    html:`<p><span class="ltr">log10</span> بيقولك: كام مرة نضرب 10 في نفسها علشان نوصل للرقم ده؟</p>
+      <pre class="snip">log10(10)    # 1
+log10(1000)  # 3
+log10(2)     # 0.301…  (أقل من دور كامل)</pre>`
+  },
+  tower: {
+    label:'ليه الأس × log؟', title:'كل ضربة = دور في البرج',
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><rect x="7" y="15" width="10" height="5"/><rect x="7" y="10" width="10" height="5"/><rect x="7" y="5" width="10" height="5"/></svg>',
+    html:`<p><span class="ltr">2³ = 2 × 2 × 2</span>، يعني 3 أدوار، وكل دور ارتفاعه <span class="ltr">log10(2)</span>.</p>
+      <p>فارتفاع البرج كله = <span class="ltr">3 × log10(2)</span>. واللوغاريتم بيحوّل الضرب لجمع أدوار.</p>`
+  },
+  equal: {
+    label:'متساويين = NO', title:'لو البرجين قد بعض',
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 9h14M5 15h14"/></svg>',
+    html:`<p>المسألة بتسأل: هل الأول <b>أكبر</b>؟ لو متساويين يبقى مش أكبر.</p>
+      <pre class="snip">4 2 2 4   # 16 و 16  →  NO</pre>`
+  },
+  why: {
+    label:'ليه مش نحسب؟', title:'الرقم أكبر من الكون',
+    icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5M12 16v.5"/></svg>',
+    html:`<p><span class="ltr">2^(10¹²)</span> فيه حوالي 300 مليار رقم! لو كتبناه هيحتاج ذاكرة أكبر من أي كمبيوتر.</p><p>ارتفاع البرج بقى رقم صغير: <span class="ltr">10¹² × 0.301 ≈ 301029995664</span>، وده سهل نقارنه.</p>`
+  }
+};
+const NEXT = {
+  title:'الجاي: شيت 2، Loops',
+  html:`<div class="nx">
+    <div class="g">خلصنا شيت 1! الجاي: <b>التكرار</b></div>
+    <svg class="art" viewBox="0 0 640 220" direction="ltr" font-family="Red Hat Mono" font-weight="700">
+      <g font-size="30" fill="#1d2b36">${[1,2,3,4,5].map((n, i) => `<rect x="${60 + i * 80}" y="80" width="62" height="62" rx="6" fill="${i % 2 ? '#ff7a1a' : '#3a6ea5'}" stroke="#1d2b36" stroke-width="3"/><text x="${91 + i * 80}" y="112" text-anchor="middle" dominant-baseline="central" fill="#fff">${n}</text>`).join('')}</g>
+      <text x="500" y="112" dominant-baseline="central" font-size="34" fill="#667a88">… 1000</text>
+      <path d="M90 66 C200 10 420 10 530 66" stroke="#ffc21a" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M520 50 L532 68 L512 72" stroke="#ffc21a" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="tip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>عايز تطبع من 1 لحد 1000… هتكتب print ألف مرة؟ ولا فيه طريقة الكمبيوتر يكرر لوحده؟</div>
+    <div class="try">فكّر فيها قبل ما تبدأ الشيت الجاي</div>
+  </div>`
+};
+Object.entries(SHEETS).forEach(([k, s]) => { const b = document.createElement('button'); b.className = 'hint-btn'; b.innerHTML = `${s.icon}<span>${s.label}</span>`; b.onclick = () => openSheet(k); $('hints').appendChild(b); });
+function openSheet(k){
+  const d = k === 'next' ? NEXT : SHEETS[k];
+  document.querySelector('.sheet').className = 'sheet' + (k === 'next' ? ' big' : '');
+  $('sheetTitle').textContent = d.title; $('sheetBody').innerHTML = d.html; $('sheetWrap').classList.add('open');
+}
+function closeSheet(){ $('sheetWrap').classList.remove('open'); }
+$('sheetClose').onclick = closeSheet;
+$('sheetWrap').onclick = e => { if (e.target.id === 'sheetWrap') closeSheet(); };
+</script>
+</body>
+</html>
